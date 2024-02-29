@@ -21,6 +21,12 @@ For guidance, refer to the Fraxlend [docs](https://docs.frax.finance/fraxlend/fr
 
 ![https://github.com/FraxFinance/fraxlend/raw/main/documentation/_images/PairOverview.png](https://github.com/FraxFinance/fraxlend/raw/main/documentation/_images/PairOverview.png)
 
+### Dependencies
+
+```shell
+npm install
+```
+
 ### Build
 
 ```shell
