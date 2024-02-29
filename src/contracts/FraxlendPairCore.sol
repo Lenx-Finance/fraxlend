@@ -35,7 +35,6 @@ import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 import "./FraxlendPairConstants.sol";
 import "./libraries/VaultAccount.sol";
 import "./libraries/SafeERC20.sol";
-import "./interfaces/IERC4626.sol";
 import "./interfaces/IFraxlendWhitelist.sol";
 import "./interfaces/IRateCalculator.sol";
 import "./interfaces/ISwapper.sol";
