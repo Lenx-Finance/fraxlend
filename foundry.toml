@@ -5,7 +5,7 @@
   libs = ['node_modules', 'lib']
   evm_version = "paris"
   solc_version = "0.8.18"
-  verbosity = 3
+  ffi = true
 
 [profile.ci]
   fuzz = { runs = 5000 }

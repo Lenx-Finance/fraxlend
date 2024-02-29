@@ -38,7 +38,7 @@ contract LiquidatePairTest is BasePairTest {
         vm.startPrank(users[1]);
         pair.addInterest();
         asset.approve(address(pair), toBorrowAmount(_shares, true));
-        pair.liquidate(_shares, users[2]);
+        pair.liquidate(_shares, block.timestamp, users[2]);
         assertEq(pair.userBorrowShares(users[2]), 0);
         vm.stopPrank();
     }
@@ -65,7 +65,7 @@ contract LiquidatePairTest is BasePairTest {
         pair.addInterest();
         asset.approve(address(pair), toBorrowAmount(_shares, true));
         vm.expectRevert(FraxlendPairConstants.BorrowerSolvent.selector);
-        pair.liquidate(_shares, users[2]);
+        pair.liquidate(_shares, block.timestamp, users[2]);
         vm.stopPrank();
         // assertEq(pair.userBorrowShares(users[2]), 0);
     }

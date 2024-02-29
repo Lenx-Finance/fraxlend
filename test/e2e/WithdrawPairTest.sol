@@ -87,9 +87,9 @@ contract WithdrawPairTest is BasePairTest {
         // Lender withdraws
         uint256 _initialBalance = asset.balanceOf(users[0]);
         vm.startPrank(users[0]);
-        uint256 _lenderAmount = pair.convertToAssets(_lenderShares);
+        uint256 _lenderAmount = pair.toAssetAmount(_lenderShares, false);
         mineOneBlock();
-        pair.withdraw(_lenderAmount, users[0], users[0]);
+        pair.redeem(_lenderAmount, users[0], users[0]);
         uint256 _finalBalance = asset.balanceOf(users[0]);
         uint256 _diffBalance = _finalBalance - _initialBalance;
         uint256 _sharesAsFees = toAssetAmount(pair.balanceOf(address(pair)), true);

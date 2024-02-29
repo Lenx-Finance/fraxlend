@@ -63,23 +63,24 @@ contract LiquidatePairTest is BasePairTest {
         // deleverageTest();
     }
 
-    function deleverageTest() public {
-        (, uint256 _exchangeRate) = pair.exchangeRateInfo();
+    // TODO
+    // function deleverageTest() public {
+    //     (, uint256 _exchangeRate) = pair.exchangeRateInfo();
 
-        uint256 _idealCollateral2 = pair.userCollateralBalance(users[1]) / 2;
-        uint256 _amountAssetOutMin = (_idealCollateral2 * 85) / (100 * _exchangeRate);
-        address[] memory _path = new address[](2);
-        _path[0] = address(collateral);
-        _path[1] = address(asset);
+    //     uint256 _idealCollateral2 = pair.userCollateralBalance(users[1]) / 2;
+    //     uint256 _amountAssetOutMin = (_idealCollateral2 * 85) / (100 * _exchangeRate);
+    //     address[] memory _path = new address[](2);
+    //     _path[0] = address(collateral);
+    //     _path[1] = address(asset);
 
-        uint256 _initialBorrowAmount = pair.assetsPerShare() * pair.userBorrowShares(users[1]);
-        uint256 _initialCollateralAmount = pair.userCollateralBalance(users[1]);
+    //     uint256 _initialBorrowAmount = pair.assetsPerShare() * pair.userBorrowShares(users[1]);
+    //     uint256 _initialCollateralAmount = pair.userCollateralBalance(users[1]);
 
-        pair.repayAssetWithCollateral(UNIV2_ROUTER, _idealCollateral2, _amountAssetOutMin, _path);
-        uint256 _finalBorrowAmount = pair.assetsPerShare() * pair.userBorrowShares(users[1]);
-        uint256 _finalCollateralAmount = pair.userCollateralBalance(users[1]);
+    //     pair.repayAssetWithCollateral(UNIV2_ROUTER, _idealCollateral2, _amountAssetOutMin, _path);
+    //     uint256 _finalBorrowAmount = pair.assetsPerShare() * pair.userBorrowShares(users[1]);
+    //     uint256 _finalCollateralAmount = pair.userCollateralBalance(users[1]);
 
-        assertGt(_initialBorrowAmount - _finalBorrowAmount, _amountAssetOutMin);
-        assertEq(_initialCollateralAmount - _finalCollateralAmount, _idealCollateral2);
-    }
+    //     assertGt(_initialBorrowAmount - _finalBorrowAmount, _amountAssetOutMin);
+    //     assertEq(_initialCollateralAmount - _finalCollateralAmount, _idealCollateral2);
+    // }
 }

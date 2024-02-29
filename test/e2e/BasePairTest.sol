@@ -467,7 +467,7 @@ contract BasePairTest is FraxlendPairConstants, Scenarios, Test {
     // helper to approve and lend in one step
     function lendTokenViaMint(uint256 _shares, address _user) internal returns (uint256) {
         vm.startPrank(_user);
-        uint256 _amount = pair.convertToAssets(_shares);
+        uint256 _amount = pair.toAssetAmount(_shares, false);
         asset.approve(address(pair), _amount);
         pair.deposit(_amount, _user);
         vm.stopPrank();

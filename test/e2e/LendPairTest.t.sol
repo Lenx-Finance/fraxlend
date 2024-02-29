@@ -36,7 +36,7 @@ contract LendPairTest is BasePairTest {
         // Test Starts
         uint256 _amountToLend = 2e21; // 2k
         faucetFunds(asset, _amountToLend);
-        uint256 _sharesToLend = pair.convertToShares(_amountToLend);
+        uint256 _sharesToLend = pair.toAssetAmount(_amountToLend, false);
         uint256 _balanceOfUser = lendTokenViaMint(_sharesToLend, users[0]);
 
         // Check total
