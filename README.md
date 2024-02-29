@@ -11,15 +11,12 @@
 [license-badge]: https://img.shields.io/badge/License-ISC-blue.svg
 
 For guidance, refer to the Fraxlend [docs](https://docs.frax.finance/fraxlend/fraxlend-overview).
-</div>
-
-## Overview
-
-  Fraxlend is a lending platform that allows anyone to create a market between a pair of ERC-20 tokens. Any token part of a Chainlink data feed can be lent to borrowers or used as collateral.  Each pair is an isolated, permission-less market which allows anyone to create and participate in lending and borrowing activities.
-
-  Fraxlend adheres to the EIP-4626: Tokenized Vault Standard, lenders are able to deposit ERC-20 assets into the pair and receive yield-bearing fTokens.  
+</div
 
 ![https://github.com/FraxFinance/fraxlend/raw/main/documentation/_images/PairOverview.png](https://github.com/FraxFinance/fraxlend/raw/main/documentation/_images/PairOverview.png)
+
+### Overview
+Fraxlend is a lending platform that allows anyone to create a market between a pair of ERC-20 tokens. Any token part of a Chainlink data feed can be lent to borrowers or used as collateral.  Each pair is an isolated, permission-less market which allows anyone to create and participate in lending and borrowing activities. Fraxlend adheres to the EIP-4626: Tokenized Vault Standard, lenders are able to deposit ERC-20 assets into the pair and receive yield-bearing fTokens.  
 
 ### Dependencies
 
