@@ -16,22 +16,26 @@ import "../../src/contracts/FraxlendPair.sol";
 import "./Scenarios.sol";
 
 library OracleHelper {
-    /// @notice The ```setPrice``` function uses a numerator and denominator value to set a price using the number of decimals from the oracle itself
+    /// @notice The ```setPrice``` function uses a numerator and denominator value to set a price
+    /// using the number of decimals from the oracle itself
     /// @dev Remember the units here, quote per asset i.e. USD per ETH for the ETH/USD oracle
     /// @param _oracle The oracle to mock
     /// @param numerator The numerator of the price
     /// @param denominator The denominator of the price
     /// @param vm The vm from forge
-    function setPrice(
-        AggregatorV3Interface _oracle,
-        uint256 numerator,
-        uint256 denominator,
-        Vm vm
-    ) internal {
+    function setPrice(AggregatorV3Interface _oracle, uint256 numerator, uint256 denominator, Vm vm)
+        internal
+    {
         vm.mockCall(
             address(_oracle),
             abi.encodeWithSelector(AggregatorV3Interface.latestRoundData.selector),
-            abi.encode(uint80(0), int256((numerator * 10**_oracle.decimals()) / denominator), 0, 0, uint80(0))
+            abi.encode(
+                uint80(0),
+                int256((numerator * 10 ** _oracle.decimals()) / denominator),
+                0,
+                0,
+                uint80(0)
+            )
         );
         vm.warp(block.timestamp + 15);
         vm.roll(block.number + 1);
@@ -86,11 +90,11 @@ contract BasePairTest is FraxlendPairConstants, Scenarios, Test {
     address internal constant TIME_LOCK_ADDRESS = 0x8412ebf45bAC1B340BbE8F318b928C466c4E39CA;
 
     // Deployer constants
-    uint256 internal constant DEFAULT_MAX_LTV = 75000; // 75% with 1e5 precision
+    uint256 internal constant DEFAULT_MAX_LTV = 75_000; // 75% with 1e5 precision
     uint256 internal constant DEFAULT_LIQ_FEE = 500; // 5% with 1e5 precision
 
     // Interest Helpers
-    uint256 internal constant ONE_PERCENT_ANNUAL_RATE = 14624850;
+    uint256 internal constant ONE_PERCENT_ANNUAL_RATE = 14_624_850;
 
     function takeInitialAccountingSnapshot(FraxlendPair _fraxlendPair) internal {
         (
@@ -122,7 +126,9 @@ contract BasePairTest is FraxlendPairConstants, Scenarios, Test {
         final_.totalCollateral = _totalCollateral;
     }
 
-    function setNetAccountingSnapshot(PairAccounting memory _first, PairAccounting memory _second) internal {
+    function setNetAccountingSnapshot(PairAccounting memory _first, PairAccounting memory _second)
+        internal
+    {
         net.totalAssetAmount = _first.totalAssetAmount - _second.totalAssetAmount;
         net.totalAssetShares = _first.totalAssetShares - _second.totalAssetShares;
         net.totalBorrowAmount = _first.totalBorrowAmount - _second.totalBorrowAmount;
@@ -130,20 +136,20 @@ contract BasePairTest is FraxlendPairConstants, Scenarios, Test {
         net.totalCollateral = _first.totalCollateral - _second.totalCollateral;
     }
 
-    /// @notice The ```defaultRateInitForLinear``` function generates some default init data for use in deployments
+    /// @notice The ```defaultRateInitForLinear``` function generates some default init data for use
+    /// in deployments
     function defaultRateInitForLinear() public view returns (bytes memory) {
-        (uint256 MIN_INT, , , uint256 UTIL_PREC) = abi.decode(
-            linearRateContract.getConstants(),
-            (uint256, uint256, uint256, uint256)
-        );
+        (uint256 MIN_INT,,, uint256 UTIL_PREC) =
+            abi.decode(linearRateContract.getConstants(), (uint256, uint256, uint256, uint256));
         uint256 _minInterest = MIN_INT;
-        uint256 _vertexInterest = 79123523 * 40; // ~10%
-        uint256 _maxInterest = 79123523 * 400; // ~100%
+        uint256 _vertexInterest = 79_123_523 * 40; // ~10%
+        uint256 _maxInterest = 79_123_523 * 400; // ~100%
         uint256 _vertexUtilization = (80 * UTIL_PREC) / 100;
         return abi.encode(_minInterest, _vertexInterest, _maxInterest, _vertexUtilization);
     }
 
-    /// @notice The ```deployNonDynamicExternalContracts``` function deploys all contracts other than the pairs using default values
+    /// @notice The ```deployNonDynamicExternalContracts``` function deploys all contracts other
+    /// than the pairs using default values
     /// @dev
     function deployNonDynamicExternalContracts() public {
         fraxlendPairHelper = new FraxlendPairHelper();
@@ -182,7 +188,7 @@ contract BasePairTest is FraxlendPairConstants, Scenarios, Test {
                     uint256(_vertexInterest),
                     uint256(_maxInterest),
                     uint256(_vertexUtilization)
-                )
+                    )
             );
         }
     }
@@ -228,7 +234,8 @@ contract BasePairTest is FraxlendPairConstants, Scenarios, Test {
         fraxlendWhitelist.setFraxlendDeployerWhitelist(_deployerAddresses, true);
     }
 
-    /// @notice The ```deployFraxlendPublic``` function helps deploy Fraxlend public pairs with default config
+    /// @notice The ```deployFraxlendPublic``` function helps deploy Fraxlend public pairs with
+    /// default config
     function deployFraxlendPublic(
         uint256 _normalization,
         address _rateContract,
@@ -309,7 +316,8 @@ contract BasePairTest is FraxlendPairConstants, Scenarios, Test {
         vm.stopPrank();
     }
 
-    /// @notice The ```defaultSetUp``` function provides a full default deployment environment for testing
+    /// @notice The ```defaultSetUp``` function provides a full default deployment environment for
+    /// testing
     function defaultSetUp() public virtual {
         setExternalContracts();
         startHoax(COMPTROLLER_ADDRESS);
@@ -336,9 +344,7 @@ contract BasePairTest is FraxlendPairConstants, Scenarios, Test {
             _amount = _shares;
         } else {
             _amount = (_shares * _amountTotal) / _sharesTotal;
-            if (roundup && (_amount * _sharesTotal) / _amountTotal < _shares) {
-                _amount++;
-            }
+            if (roundup && (_amount * _sharesTotal) / _amountTotal < _shares) _amount++;
         }
     }
 
@@ -359,9 +365,7 @@ contract BasePairTest is FraxlendPairConstants, Scenarios, Test {
             _amount = _shares;
         } else {
             _amount = (_shares * _amountTotal) / _sharesTotal;
-            if (roundup && (_amount * _sharesTotal) / _amountTotal < _shares) {
-                _amount++;
-            }
+            if (roundup && (_amount * _sharesTotal) / _amountTotal < _shares) _amount++;
         }
     }
 
@@ -382,9 +386,7 @@ contract BasePairTest is FraxlendPairConstants, Scenarios, Test {
             _shares = _amount;
         } else {
             _shares = (_amount * _sharesTotal) / _amountTotal;
-            if (roundup && (_shares * _amountTotal) / _sharesTotal < _amount) {
-                _shares++;
-            }
+            if (roundup && (_shares * _amountTotal) / _sharesTotal < _amount) _shares++;
         }
     }
 
@@ -405,9 +407,7 @@ contract BasePairTest is FraxlendPairConstants, Scenarios, Test {
             _shares = _amount;
         } else {
             _shares = (_amount * _sharesTotal) / _amountTotal;
-            if (roundup && (_shares * _amountTotal) / _sharesTotal < _amount) {
-                _shares++;
-            }
+            if (roundup && (_shares * _amountTotal) / _sharesTotal < _amount) _shares++;
         }
     }
 
@@ -415,19 +415,15 @@ contract BasePairTest is FraxlendPairConstants, Scenarios, Test {
     function faucetFunds(IERC20 _contract, uint256 _amount) internal {
         uint256 _length = users.length; // gas savings, good habit
         for (uint256 i = 0; i < _length; i++) {
-            stdstore.target(address(_contract)).sig(_contract.balanceOf.selector).with_key(users[i]).checked_write(
-                _amount
-            );
+            stdstore.target(address(_contract)).sig(_contract.balanceOf.selector).with_key(users[i])
+                .checked_write(_amount);
         }
     }
 
     // helper to faucet funds to ERC20 contracts
-    function faucetFunds(
-        IERC20 _contract,
-        uint256 _amount,
-        address _user
-    ) internal {
-        stdstore.target(address(_contract)).sig(_contract.balanceOf.selector).with_key(_user).checked_write(_amount);
+    function faucetFunds(IERC20 _contract, uint256 _amount, address _user) internal {
+        stdstore.target(address(_contract)).sig(_contract.balanceOf.selector).with_key(_user)
+            .checked_write(_amount);
     }
 
     struct LendAction {
@@ -445,11 +441,10 @@ contract BasePairTest is FraxlendPairConstants, Scenarios, Test {
     }
 
     // helper to approve and lend in one step
-    function lendTokenViaDeposit(
-        FraxlendPair _pair,
-        uint256 _amount,
-        address _user
-    ) internal returns (uint256) {
+    function lendTokenViaDeposit(FraxlendPair _pair, uint256 _amount, address _user)
+        internal
+        returns (uint256)
+    {
         startHoax(_user);
         IERC20(_pair.asset()).approve(address(_pair), _amount);
         _pair.deposit(_amount, _user);
@@ -462,7 +457,10 @@ contract BasePairTest is FraxlendPairConstants, Scenarios, Test {
         returns (uint256)
     {
         faucetFunds(IERC20(_pair.asset()), _lendAction.lendAmount, _lendAction.user);
-        console.log("file: BasePairTest.sol ~ line 408 ~ )internalreturns ~ _lendAction.user", _lendAction.user);
+        console.log(
+            "file: BasePairTest.sol ~ line 408 ~ )internalreturns ~ _lendAction.user",
+            _lendAction.user
+        );
         return lendTokenViaDeposit(_pair, _lendAction.lendAmount, _lendAction.user);
     }
 
@@ -483,11 +481,10 @@ contract BasePairTest is FraxlendPairConstants, Scenarios, Test {
     }
 
     // helper to approve and lend in one step
-    function borrowToken(
-        uint256 _amountToBorrow,
-        uint256 _collateralAmount,
-        address _user
-    ) internal returns (uint256 _finalShares, uint256 _finalCollateralBalance) {
+    function borrowToken(uint256 _amountToBorrow, uint256 _collateralAmount, address _user)
+        internal
+        returns (uint256 _finalShares, uint256 _finalCollateralBalance)
+    {
         vm.startPrank(_user);
         collateral.approve(address(pair), _collateralAmount);
         pair.borrowAsset(uint128(_amountToBorrow), _collateralAmount, _user);
@@ -500,16 +497,19 @@ contract BasePairTest is FraxlendPairConstants, Scenarios, Test {
         internal
         returns (uint256 _finalShares, uint256 _finalCollateralBalance)
     {
-        faucetFunds(_fraxlendPair.collateralContract(), _borrowAction.collateralAmount, _borrowAction.user);
+        faucetFunds(
+            _fraxlendPair.collateralContract(), _borrowAction.collateralAmount, _borrowAction.user
+        );
         (_finalShares, _finalCollateralBalance) = borrowToken(
-            _borrowAction.borrowAmount,
-            _borrowAction.collateralAmount,
-            _borrowAction.user
+            _borrowAction.borrowAmount, _borrowAction.collateralAmount, _borrowAction.user
         );
     }
 
     // helper to approve and repay in one step, should have called addInterest before hand
-    function repayToken(uint256 _sharesToRepay, address _user) internal returns (uint256 _finalShares) {
+    function repayToken(uint256 _sharesToRepay, address _user)
+        internal
+        returns (uint256 _finalShares)
+    {
         vm.startPrank(_user);
         uint256 _amountToApprove = toBorrowAmount(_sharesToRepay, true);
         asset.approve(address(pair), _amountToApprove);
@@ -535,14 +535,14 @@ contract BasePairTest is FraxlendPairConstants, Scenarios, Test {
         _sumOfInt = 0;
         for (uint256 i = 0; i < _blocks; i++) {
             mineOneBlock();
-            (uint256 _interestEarned, , , ) = pair.addInterest();
+            (uint256 _interestEarned,,,) = pair.addInterest();
             _sumOfInt += _interestEarned;
         }
     }
 
     function getUtilization() internal view returns (uint256 _utilization) {
-        (uint256 _borrowAmount, ) = pair.totalBorrow();
-        (uint256 _assetAmount, ) = pair.totalAsset();
+        (uint256 _borrowAmount,) = pair.totalBorrow();
+        (uint256 _assetAmount,) = pair.totalAsset();
         _utilization = (_borrowAmount * UTIL_PREC) / _assetAmount;
     }
 
@@ -567,17 +567,13 @@ contract BasePairTest is FraxlendPairConstants, Scenarios, Test {
             uint256 _decay = INT_HALF_LIFE + (_deltaUtilization * _deltaUtilization * _elapsedTime);
             _currentInterestPerSecond = (_currentInterestPerSecond * INT_HALF_LIFE) / _decay;
 
-            if (_currentInterestPerSecond < MIN_INT) {
-                _currentInterestPerSecond = MIN_INT;
-            }
+            if (_currentInterestPerSecond < MIN_INT) _currentInterestPerSecond = MIN_INT;
         } else if (_utilization > MAX_UTIL) {
             uint256 _deltaUtilization = ((_utilization - MAX_UTIL) * 1e18) / (UTIL_PREC - MAX_UTIL);
             uint256 _growth = INT_HALF_LIFE + (_deltaUtilization * _deltaUtilization * _elapsedTime);
             _currentInterestPerSecond = (_currentInterestPerSecond * _growth) / INT_HALF_LIFE;
 
-            if (_currentInterestPerSecond > MAX_INT) {
-                _currentInterestPerSecond = MAX_INT;
-            }
+            if (_currentInterestPerSecond > MAX_INT) _currentInterestPerSecond = MAX_INT;
         }
         return _currentInterestPerSecond;
     }
@@ -587,18 +583,23 @@ contract BasePairTest is FraxlendPairConstants, Scenarios, Test {
     }
 
     function ratePerSec(FraxlendPair _pair) internal view returns (uint64 _ratePerSec) {
-        (, , , _ratePerSec) = _pair.currentRateInfo();
+        (,,, _ratePerSec) = _pair.currentRateInfo();
     }
 
-    function feeToProtocolRate(FraxlendPair _pair) internal view returns (uint64 _feeToProtocolRate) {
-        (, _feeToProtocolRate, , ) = _pair.currentRateInfo();
+    function feeToProtocolRate(FraxlendPair _pair)
+        internal
+        view
+        returns (uint64 _feeToProtocolRate)
+    {
+        (, _feeToProtocolRate,,) = _pair.currentRateInfo();
     }
 
-    function getCollateralAmount(
-        uint256 _borrowAmount,
-        uint256 _exchangeRate,
-        uint256 _targetLTV
-    ) internal pure returns (uint256 _collateralAmount) {
-        _collateralAmount = (_borrowAmount * _exchangeRate * LTV_PRECISION) / (_targetLTV * EXCHANGE_PRECISION);
+    function getCollateralAmount(uint256 _borrowAmount, uint256 _exchangeRate, uint256 _targetLTV)
+        internal
+        pure
+        returns (uint256 _collateralAmount)
+    {
+        _collateralAmount =
+            (_borrowAmount * _exchangeRate * LTV_PRECISION) / (_targetLTV * EXCHANGE_PRECISION);
     }
 }

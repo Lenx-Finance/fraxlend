@@ -54,8 +54,7 @@ contract FraxlendPairDeployerTest is BasePairTest {
         // Test Starts
         // Define some custom init data
         (uint256 MIN_INT, uint256 MAX_INT, uint256 MAX_VERTEX_UTIL, uint256 UTIL_PREC) = abi.decode(
-            (new LinearInterestRate()).getConstants(),
-            (uint256, uint256, uint256, uint256)
+            (new LinearInterestRate()).getConstants(), (uint256, uint256, uint256, uint256)
         );
         uint256 _minInterest = MIN_INT + 1;
         uint256 _vertexInterest = _minInterest * 60; // 10%
@@ -70,7 +69,9 @@ contract FraxlendPairDeployerTest is BasePairTest {
         );
         mineOneBlock();
         // Use default init data
-        deployer.deploy(_encodeConfigData(1e10, address(variableRateContract), defaultRateInitForLinear()));
+        deployer.deploy(
+            _encodeConfigData(1e10, address(variableRateContract), defaultRateInitForLinear())
+        );
     }
 
     function testCanDeployTwicePublicFRAXFXS() public {
@@ -116,8 +117,7 @@ contract FraxlendPairDeployerTest is BasePairTest {
         // Test Starts
         // different Init Data
         (uint256 MIN_INT, uint256 MAX_INT, uint256 MAX_VERTEX_UTIL, uint256 UTIL_PREC) = abi.decode(
-            (new LinearInterestRate()).getConstants(),
-            (uint256, uint256, uint256, uint256)
+            (new LinearInterestRate()).getConstants(), (uint256, uint256, uint256, uint256)
         );
         uint256 _minInterest = MIN_INT + 1;
         uint256 _vertexInterest = _minInterest * 60; // 10%

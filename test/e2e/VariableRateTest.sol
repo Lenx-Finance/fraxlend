@@ -33,7 +33,9 @@ contract VariableRateTest is VariableInterestRate, BasePairTest {
             uint64 MIN_INT,
             uint64 MAX_INT,
             uint256 INT_HALF_LIFE
-        ) = abi.decode(variableRateContract.getConstants(), (uint32, uint32, uint32, uint64, uint64, uint256));
+        ) = abi.decode(
+            variableRateContract.getConstants(), (uint32, uint32, uint32, uint64, uint64, uint256)
+        );
         _currentRatePerSec = uint64((uint256(_currentRatePerSec) + MIN_INT) % MAX_INT);
         _testVariableRate(_currentRatePerSec, _deltaTime, _utilization);
     }
@@ -43,12 +45,12 @@ contract VariableRateTest is VariableInterestRate, BasePairTest {
     }
 
     // testVariableRate
-    function _testVariableRate(
-        uint64 _currentRatePerSec,
-        uint16 _deltaTime,
-        uint32 _utilization
-    ) public {
-        uint256 _newRate = this.getNewRate(abi.encode(_currentRatePerSec, _deltaTime, _utilization, 0), abi.encode());
+    function _testVariableRate(uint64 _currentRatePerSec, uint16 _deltaTime, uint32 _utilization)
+        public
+    {
+        uint256 _newRate = this.getNewRate(
+            abi.encode(_currentRatePerSec, _deltaTime, _utilization, 0), abi.encode()
+        );
 
         string[] memory _inputs = new string[](5);
         _inputs[0] = "node";
@@ -57,14 +59,14 @@ contract VariableRateTest is VariableInterestRate, BasePairTest {
         _inputs[3] = uint256(_deltaTime).toString();
         _inputs[4] = uint256(_utilization).toString();
         bytes memory _ret = vm.ffi(_inputs);
-        uint256 _base = 5000001;
-        assertApproxEqRel(_base, 5000000, 1e18 / 5000000);
+        uint256 _base = 5_000_001;
+        assertApproxEqRel(_base, 5_000_000, 1e18 / 5_000_000);
         assertApproxEqRel(abi.decode(_ret, (uint256)), uint256(_newRate), 1e18 / uint256(_newRate));
     }
 
     function testFailRelativeAssertionCheck() public {
         // this test proves the validity of 1e18 / minValue creating a 1 wei relative buffer
-        uint256 _base = 5000002;
-        assertApproxEqRel(_base, 5000000, 1e18 / 5000000);
+        uint256 _base = 5_000_002;
+        assertApproxEqRel(_base, 5_000_000, 1e18 / 5_000_000);
     }
 }

@@ -6,19 +6,17 @@ import "./BasePairTest.sol";
 contract BorrowPairTest is BasePairTest {
     using OracleHelper for AggregatorV3Interface;
 
-    function _borrowTest(
-        uint256 _targetLTV,
-        uint256 _amountToBorrow,
-        uint256 _amountInPool
-    ) internal {
+    function _borrowTest(uint256 _targetLTV, uint256 _amountToBorrow, uint256 _amountInPool)
+        internal
+    {
         // Lend funds
         faucetFunds(asset, _amountInPool, users[0]);
         lendTokenViaDeposit(_amountInPool, users[0]);
 
         // Borrow tokens and use collateral value of 1.5 times borrow value
         uint256 _initialBalance = asset.balanceOf(users[2]);
-        uint256 _collateralAmount = (_amountToBorrow * exchangeRate(pair) * LTV_PRECISION) /
-            (_targetLTV * EXCHANGE_PRECISION);
+        uint256 _collateralAmount = (_amountToBorrow * exchangeRate(pair) * LTV_PRECISION)
+            / (_targetLTV * EXCHANGE_PRECISION);
         faucetFunds(collateral, _collateralAmount, users[2]);
         borrowToken(_amountToBorrow, _collateralAmount, users[2]);
         uint256 _finalBalance = asset.balanceOf(users[2]);
@@ -46,10 +44,8 @@ contract BorrowPairTest is BasePairTest {
         startHoax(COMPTROLLER_ADDRESS);
         deployNonDynamicExternalContracts();
         vm.stopPrank();
-        (uint256 MIN_INT, uint256 MAX_INT, uint256 MAX_VERTEX_UTIL, uint256 UTIL_PREC) = abi.decode(
-            linearRateContract.getConstants(),
-            (uint256, uint256, uint256, uint256)
-        );
+        (uint256 MIN_INT, uint256 MAX_INT, uint256 MAX_VERTEX_UTIL, uint256 UTIL_PREC) =
+            abi.decode(linearRateContract.getConstants(), (uint256, uint256, uint256, uint256));
         _fuzzySetupBorrowToken(
             MIN_INT,
             (MIN_INT + (MAX_INT / 1000)) / 2,
@@ -79,13 +75,8 @@ contract BorrowPairTest is BasePairTest {
         oracleDivide = AggregatorV3Interface(CHAINLINK_FIL_ETH);
         oracleDivide.setPrice(_priceDiv, 1e8, vm);
         uint256 _oracleNormalization = 1e18;
-        (address _rateContract, bytes memory _rateInitData) = fuzzyRateCalculator(
-            2,
-            _minInterest,
-            _vertexInterest,
-            _maxInterest,
-            _vertexUtilization
-        );
+        (address _rateContract, bytes memory _rateInitData) =
+            fuzzyRateCalculator(2, _minInterest, _vertexInterest, _maxInterest, _vertexUtilization);
         startHoax(COMPTROLLER_ADDRESS);
         setWhitelistTrue();
         vm.stopPrank();
@@ -153,7 +144,8 @@ contract BorrowPairTest is BasePairTest {
         uint128 _amountToBorrow = 15e20; // 1.5k
         uint128 _amountInPool = 15e23; // 1.5m
         // collateral is 1.5 times borrow
-        uint256 _collateralAmount = (_amountToBorrow * exchangeRate(pair) * 3) / (2 * EXCHANGE_PRECISION);
+        uint256 _collateralAmount =
+            (_amountToBorrow * exchangeRate(pair) * 3) / (2 * EXCHANGE_PRECISION);
         faucetFunds(asset, _amountInPool);
         faucetFunds(collateral, _collateralAmount);
         lendTokenViaDeposit(_amountInPool, users[0]);

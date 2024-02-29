@@ -19,13 +19,13 @@ contract FraxlendPairHelperTest is BasePairTest {
 
         // Borrow a bit
         uint256 _targetLTV = 70e5 / 100; // 70% 1e5 precision
-        uint256 _collateralAmount = (_amountToBorrow * exchangeRate(pair) * LTV_PRECISION) /
-            (_targetLTV * EXCHANGE_PRECISION);
+        uint256 _collateralAmount = (_amountToBorrow * exchangeRate(pair) * LTV_PRECISION)
+            / (_targetLTV * EXCHANGE_PRECISION);
         faucetFunds(collateral, _collateralAmount, users[2]);
         borrowToken(_amountToBorrow, _collateralAmount, users[2]);
 
         // mine 10k blocks to generate some interest accrual
-        mineBlocks(10000);
+        mineBlocks(10_000);
 
         (
             uint256 _interestEarnedPreview,
@@ -33,7 +33,8 @@ contract FraxlendPairHelperTest is BasePairTest {
             uint256 _feesSharePreview,
             uint256 _newRatePreview
         ) = fraxlendPairHelper.previewRateInterestFees(address(pair), block.timestamp, block.number);
-        (uint256 _interestEarned, uint256 _feesAmount, uint256 _feesShare, uint64 _newRate) = pair.addInterest();
+        (uint256 _interestEarned, uint256 _feesAmount, uint256 _feesShare, uint64 _newRate) =
+            pair.addInterest();
         assertEq(_interestEarnedPreview, _interestEarned);
         emit log("_interestEarnedPreview == _interestEarned");
         assertEq(_feesAmountPreview, _feesAmount);

@@ -58,7 +58,7 @@ contract FraxlendPair is IERC20Metadata, FraxlendPairCore {
         ERC20("", "")
         Ownable()
         Pausable()
-    {}
+    { }
 
     // ============================================================================================
     // ERC20 Metadata
@@ -71,7 +71,11 @@ contract FraxlendPair is IERC20Metadata, FraxlendPairCore {
     function symbol() public view override(ERC20, IERC20Metadata) returns (string memory) {
         // prettier-ignore
         // solhint-disable-next-line max-line-length
-        return string(abi.encodePacked("FraxlendV1 - ", collateralContract.safeSymbol(), "/", assetContract.safeSymbol()));
+        return string(
+            abi.encodePacked(
+                "FraxlendV1 - ", collateralContract.safeSymbol(), "/", assetContract.safeSymbol()
+            )
+        );
     }
 
     function decimals() public pure override(ERC20, IERC20Metadata) returns (uint8) {
@@ -224,14 +228,16 @@ contract FraxlendPair is IERC20Metadata, FraxlendPairCore {
         _totalCollateral = totalCollateral;
     }
 
-    /// @notice The ```toBorrowShares``` function converts a given amount of borrow debt into the number of shares
+    /// @notice The ```toBorrowShares``` function converts a given amount of borrow debt into the
+    /// number of shares
     /// @param _amount Amount of borrow
     /// @param _roundUp Whether to roundup during division
     function toBorrowShares(uint256 _amount, bool _roundUp) external view returns (uint256) {
         return totalBorrow.toShares(_amount, _roundUp);
     }
 
-    /// @notice The ```toBorrowAmount``` function converts a given amount of borrow debt into the number of shares
+    /// @notice The ```toBorrowAmount``` function converts a given amount of borrow debt into the
+    /// number of shares
     /// @param _shares Shares of borrow
     /// @param _roundUp Whether to roundup during division
     /// @return The amount of asset
@@ -239,7 +245,8 @@ contract FraxlendPair is IERC20Metadata, FraxlendPairCore {
         return totalBorrow.toAmount(_shares, _roundUp);
     }
 
-    /// @notice The ```toAssetAmount``` function converts a given number of shares to an asset amount
+    /// @notice The ```toAssetAmount``` function converts a given number of shares to an asset
+    /// amount
     /// @param _shares Shares of asset (fToken)
     /// @param _roundUp Whether to round up after division
     /// @return The amount of asset
@@ -247,7 +254,8 @@ contract FraxlendPair is IERC20Metadata, FraxlendPairCore {
         return totalAsset.toAmount(_shares, _roundUp);
     }
 
-    /// @notice The ```toAssetShares``` function converts a given asset amount to a number of asset shares (fTokens)
+    /// @notice The ```toAssetShares``` function converts a given asset amount to a number of asset
+    /// shares (fTokens)
     /// @param _amount The amount of asset
     /// @param _roundUp Whether to round up after division
     /// @return The number of shares (fTokens)
@@ -279,9 +287,7 @@ contract FraxlendPair is IERC20Metadata, FraxlendPairCore {
     /// @param _newFee The new fee
     function changeFee(uint32 _newFee) external whenNotPaused {
         if (msg.sender != TIME_LOCK_ADDRESS) revert OnlyTimeLock();
-        if (_newFee > MAX_PROTOCOL_FEE) {
-            revert BadProtocolFee();
-        }
+        if (_newFee > MAX_PROTOCOL_FEE) revert BadProtocolFee();
         _addInterest();
         currentRateInfo.feeToProtocolRate = _newFee;
         emit ChangeFee(_newFee);
@@ -297,7 +303,11 @@ contract FraxlendPair is IERC20Metadata, FraxlendPairCore {
     /// @param _shares Number of fTokens to redeem
     /// @param _recipient Address to send the assets
     /// @return _amountToTransfer Amount of assets sent to recipient
-    function withdrawFees(uint128 _shares, address _recipient) external onlyOwner returns (uint256 _amountToTransfer) {
+    function withdrawFees(uint128 _shares, address _recipient)
+        external
+        onlyOwner
+        returns (uint256 _amountToTransfer)
+    {
         // Grab some data from state to save gas
         VaultAccount memory _totalAsset = totalAsset;
         VaultAccount memory _totalBorrow = totalBorrow;
@@ -333,7 +343,8 @@ contract FraxlendPair is IERC20Metadata, FraxlendPairCore {
     /// @param _approval The approval
     event SetSwapper(address _swapper, bool _approval);
 
-    /// @notice The ```setSwapper``` function is called to black or whitelist a given swapper address
+    /// @notice The ```setSwapper``` function is called to black or whitelist a given swapper
+    /// address
     /// @dev
     /// @param _swapper The swapper address
     /// @param _approval The approval
@@ -351,7 +362,10 @@ contract FraxlendPair is IERC20Metadata, FraxlendPairCore {
     /// @dev Cannot black list self
     /// @param _lenders The addresses who's status will be set
     /// @param _approval The approval status
-    function setApprovedLenders(address[] calldata _lenders, bool _approval) external approvedLender(msg.sender) {
+    function setApprovedLenders(address[] calldata _lenders, bool _approval)
+        external
+        approvedLender(msg.sender)
+    {
         for (uint256 i = 0; i < _lenders.length; i++) {
             // Do not set when _approval == false and _lender == msg.sender
             if (_approval || _lenders[i] != msg.sender) {
@@ -366,11 +380,15 @@ contract FraxlendPair is IERC20Metadata, FraxlendPairCore {
     /// @param _approval The approval
     event SetApprovedBorrower(address indexed _address, bool _approval);
 
-    /// @notice The ```setApprovedBorrowers``` function sets a given array of addresses to the whitelist
+    /// @notice The ```setApprovedBorrowers``` function sets a given array of addresses to the
+    /// whitelist
     /// @dev Cannot black list self
     /// @param _borrowers The addresses who's status will be set
     /// @param _approval The approval status
-    function setApprovedBorrowers(address[] calldata _borrowers, bool _approval) external approvedBorrower {
+    function setApprovedBorrowers(address[] calldata _borrowers, bool _approval)
+        external
+        approvedBorrower
+    {
         for (uint256 i = 0; i < _borrowers.length; i++) {
             // Do not set when _approval == false and _borrower == msg.sender
             if (_approval || _borrowers[i] != msg.sender) {
@@ -382,13 +400,9 @@ contract FraxlendPair is IERC20Metadata, FraxlendPairCore {
 
     function pause() external {
         if (
-            msg.sender != CIRCUIT_BREAKER_ADDRESS &&
-            msg.sender != COMPTROLLER_ADDRESS &&
-            msg.sender != owner() &&
-            msg.sender != DEPLOYER_ADDRESS
-        ) {
-            revert ProtocolOrOwnerOnly();
-        }
+            msg.sender != CIRCUIT_BREAKER_ADDRESS && msg.sender != COMPTROLLER_ADDRESS
+                && msg.sender != owner() && msg.sender != DEPLOYER_ADDRESS
+        ) revert ProtocolOrOwnerOnly();
         _addInterest(); // accrue any interest prior to pausing as it won't accrue during pause
         _pause();
     }
@@ -397,7 +411,8 @@ contract FraxlendPair is IERC20Metadata, FraxlendPairCore {
         if (msg.sender != COMPTROLLER_ADDRESS && msg.sender != owner()) {
             revert ProtocolOrOwnerOnly();
         }
-        // Resets the lastTimestamp which has the effect of no interest accruing over the pause period
+        // Resets the lastTimestamp which has the effect of no interest accruing over the pause
+        // period
         _addInterest();
         _unpause();
     }

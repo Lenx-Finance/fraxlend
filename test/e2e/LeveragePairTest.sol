@@ -14,12 +14,9 @@ contract LiquidatePairTest is BasePairTest {
 
         IUniswapV2Router02 _uniV2Router = IUniswapV2Router02(UNIV2_ROUTER);
         address _factory = _uniV2Router.factory();
-        (address _token0, ) = UniswapV2Library.sortTokens(address(asset), address(collateral));
-        (uint256 _reserves0, uint256 _reserves1) = UniswapV2Library.getReserves(
-            _factory,
-            address(asset),
-            address(collateral)
-        );
+        (address _token0,) = UniswapV2Library.sortTokens(address(asset), address(collateral));
+        (uint256 _reserves0, uint256 _reserves1) =
+            UniswapV2Library.getReserves(_factory, address(asset), address(collateral));
 
         oracleDivide = AggregatorV3Interface(CHAINLINK_ETH_USD); // USD :: WETH
         startHoax(COMPTROLLER_ADDRESS);
@@ -52,11 +49,16 @@ contract LiquidatePairTest is BasePairTest {
         uint256 _initialCollateralBalance = pair.userCollateralBalance(users[1]);
         uint256 _initialBorrowShares = pair.userBorrowShares(users[1]);
         collateral.approve(address(pair), _initialCollateral);
-        pair.leveragedPosition(UNIV2_ROUTER, _amountToBorrow, _initialCollateral, _amountCollateralOutMin, _path2);
+        pair.leveragedPosition(
+            UNIV2_ROUTER, _amountToBorrow, _initialCollateral, _amountCollateralOutMin, _path2
+        );
         uint256 _finalCollateral = pair.userCollateralBalance(users[1]);
         uint256 _finalBorrowShares = pair.userBorrowShares(users[1]);
         assertEq(_finalBorrowShares - _initialBorrowShares, toBorrowShares(_amountToBorrow, true));
-        assertGt(_finalCollateral - _initialCollateralBalance, _initialCollateral + _amountCollateralOutMin);
+        assertGt(
+            _finalCollateral - _initialCollateralBalance,
+            _initialCollateral + _amountCollateralOutMin
+        );
 
         // deleverageTest();
     }

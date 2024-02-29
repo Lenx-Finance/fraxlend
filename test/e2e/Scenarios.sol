@@ -21,6 +21,7 @@ contract Scenarios {
         address oracleBottom;
         uint256 oracleNormalization;
     }
+
     address internal constant CHAINLINK_ETH_USD = 0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419;
     address internal constant CHAINLINK_FXS_USD = 0x6Ebc52C8C1089be9eB3945C4350B68B8E4C2233f;
     address internal constant CHAINLINK_FIL_ETH = 0x0606Be69451B1C9861Ac6b3626b99093b713E801;

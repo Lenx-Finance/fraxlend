@@ -42,7 +42,13 @@ import "./interfaces/ISwapper.sol";
 /// @title FraxlendPairCore
 /// @author Drake Evans (Frax Finance) https://github.com/drakeevans
 /// @notice  An abstract contract which contains the core logic and storage for the FraxlendPair
-abstract contract FraxlendPairCore is FraxlendPairConstants, ERC20, Ownable, Pausable, ReentrancyGuard {
+abstract contract FraxlendPairCore is
+    FraxlendPairConstants,
+    ERC20,
+    Ownable,
+    Pausable,
+    ReentrancyGuard
+{
     using VaultAccountingLibrary for VaultAccount;
     using SafeERC20 for IERC20;
     using SafeCast for uint256;
@@ -71,7 +77,8 @@ abstract contract FraxlendPairCore is FraxlendPairConstants, ERC20, Ownable, Pau
 
     // Interest Rate Calculator Contract
     IRateCalculator public immutable rateContract; // For complex rate calculations
-    bytes public rateInitCallData; // Optional extra data from init function to be passed to rate calculator
+    bytes public rateInitCallData; // Optional extra data from init function to be passed to rate
+        // calculator
 
     // Swapper
     mapping(address => bool) public swappers; // approved swapper addresses
@@ -99,8 +106,10 @@ abstract contract FraxlendPairCore is FraxlendPairConstants, ERC20, Ownable, Pau
     // ============================================================================================
 
     /// @notice Stores information about the current interest rate
-    /// @dev struct is packed to reduce SLOADs. feeToProtocolRate is 1e5 precision, ratePerSec is 1e18 precision
+    /// @dev struct is packed to reduce SLOADs. feeToProtocolRate is 1e5 precision, ratePerSec is
+    /// 1e18 precision
     CurrentRateInfo public currentRateInfo;
+
     struct CurrentRateInfo {
         uint64 lastBlock;
         uint64 feeToProtocolRate; // Fee amount 1e5 precision
@@ -111,21 +120,26 @@ abstract contract FraxlendPairCore is FraxlendPairConstants, ERC20, Ownable, Pau
     /// @notice Stores information about the current exchange rate. Collateral:Asset ratio
     /// @dev Struct packed to save SLOADs. Amount of Collateral Token to buy 1e18 Asset Token
     ExchangeRateInfo public exchangeRateInfo;
+
     struct ExchangeRateInfo {
         uint32 lastTimestamp;
         uint224 exchangeRate; // collateral:asset ratio. i.e. how much collateral to buy 1e18 asset
     }
 
     // Contract Level Accounting
-    VaultAccount public totalAsset; // amount = total amount of assets, shares = total shares outstanding
-    VaultAccount public totalBorrow; // amount = total borrow amount with interest accrued, shares = total shares outstanding
+    VaultAccount public totalAsset; // amount = total amount of assets, shares = total shares
+        // outstanding
+    VaultAccount public totalBorrow; // amount = total borrow amount with interest accrued, shares =
+        // total shares outstanding
     uint256 public totalCollateral; // total amount of collateral in contract
 
     // User Level Accounting
     /// @notice Stores the balance of collateral for each user
-    mapping(address => uint256) public userCollateralBalance; // amount of collateral each user is backed
+    mapping(address => uint256) public userCollateralBalance; // amount of collateral each user is
+        // backed
     /// @notice Stores the balance of borrow shares for each user
-    mapping(address => uint256) public userBorrowShares; // represents the shares held by individuals
+    mapping(address => uint256) public userBorrowShares; // represents the shares held by
+        // individuals
     // NOTE: user shares of assets are represented as ERC-20 tokens and accessible via balanceOf()
 
     // Internal Whitelists
@@ -140,9 +154,13 @@ abstract contract FraxlendPairCore is FraxlendPairConstants, ERC20, Ownable, Pau
     // ============================================================================================
 
     /// @notice The ```constructor``` function is called on deployment
-    /// @param _configData abi.encode(address _asset, address _collateral, address _oracleMultiply, address _oracleDivide, uint256 _oracleNormalization, address _rateContract, bytes memory _rateInitData)
-    /// @param _maxLTV The Maximum Loan-To-Value for a borrower to be considered solvent (1e5 precision)
-    /// @param _liquidationFee The fee paid to liquidators given as a % of the repayment (1e5 precision)
+    /// @param _configData abi.encode(address _asset, address _collateral, address _oracleMultiply,
+    /// address _oracleDivide, uint256 _oracleNormalization, address _rateContract, bytes memory
+    /// _rateInitData)
+    /// @param _maxLTV The Maximum Loan-To-Value for a borrower to be considered solvent (1e5
+    /// precision)
+    /// @param _liquidationFee The fee paid to liquidators given as a % of the repayment (1e5
+    /// precision)
     /// @param _maturityDate The maturityDate date of the Pair
     /// @param _penaltyRate The interest rate after maturity date
     /// @param _isBorrowerWhitelistActive Enables borrower whitelist
@@ -182,30 +200,36 @@ abstract contract FraxlendPairCore is FraxlendPairConstants, ERC20, Ownable, Pau
                 address _oracleDivide,
                 uint256 _oracleNormalization,
                 address _rateContract,
-
-            ) = abi.decode(_configData, (address, address, address, address, uint256, address, bytes));
+            ) = abi.decode(
+                _configData, (address, address, address, address, uint256, address, bytes)
+            );
 
             // Pair Settings
             assetContract = IERC20(_asset);
             collateralContract = IERC20(_collateral);
             currentRateInfo.feeToProtocolRate = DEFAULT_PROTOCOL_FEE;
             cleanLiquidationFee = _liquidationFee;
-            dirtyLiquidationFee = (_liquidationFee * 90000) / LIQ_PRECISION; // 90% of clean fee
+            dirtyLiquidationFee = (_liquidationFee * 90_000) / LIQ_PRECISION; // 90% of clean fee
 
-            if (_maxLTV >= LTV_PRECISION && !_isBorrowerWhitelistActive) revert BorrowerWhitelistRequired();
+            if (_maxLTV >= LTV_PRECISION && !_isBorrowerWhitelistActive) {
+                revert BorrowerWhitelistRequired();
+            }
             maxLTV = _maxLTV;
 
             // Oracle Settings
             {
-                IFraxlendWhitelist _fraxlendWhitelist = IFraxlendWhitelist(FRAXLEND_WHITELIST_ADDRESS);
+                IFraxlendWhitelist _fraxlendWhitelist =
+                    IFraxlendWhitelist(FRAXLEND_WHITELIST_ADDRESS);
                 // Check that oracles are on the whitelist
-                if (_oracleMultiply != address(0) && !_fraxlendWhitelist.oracleContractWhitelist(_oracleMultiply)) {
-                    revert NotOnWhitelist(_oracleMultiply);
-                }
+                if (
+                    _oracleMultiply != address(0)
+                        && !_fraxlendWhitelist.oracleContractWhitelist(_oracleMultiply)
+                ) revert NotOnWhitelist(_oracleMultiply);
 
-                if (_oracleDivide != address(0) && !_fraxlendWhitelist.oracleContractWhitelist(_oracleDivide)) {
-                    revert NotOnWhitelist(_oracleDivide);
-                }
+                if (
+                    _oracleDivide != address(0)
+                        && !_fraxlendWhitelist.oracleContractWhitelist(_oracleDivide)
+                ) revert NotOnWhitelist(_oracleDivide);
 
                 // Write oracleData to storage
                 oracleMultiply = _oracleMultiply;
@@ -244,15 +268,9 @@ abstract contract FraxlendPairCore is FraxlendPairConstants, ERC20, Ownable, Pau
         address[] calldata _approvedLenders,
         bytes calldata _rateInitCallData
     ) external {
-        if (msg.sender != DEPLOYER_ADDRESS) {
-            revert NotDeployer();
-        }
-        if (bytes(_name).length == 0) {
-            revert NameEmpty();
-        }
-        if (bytes(nameOfContract).length != 0) {
-            revert AlreadyInitialized();
-        }
+        if (msg.sender != DEPLOYER_ADDRESS) revert NotDeployer();
+        if (bytes(_name).length == 0) revert NameEmpty();
+        if (bytes(nameOfContract).length != 0) revert AlreadyInitialized();
 
         // Set name
         nameOfContract = _name;
@@ -284,7 +302,8 @@ abstract contract FraxlendPairCore is FraxlendPairConstants, ERC20, Ownable, Pau
     // Internal Helpers
     // ============================================================================================
 
-    /// @notice The ```_totalAssetAvailable``` function returns the total balance of Asset Tokens in the contract
+    /// @notice The ```_totalAssetAvailable``` function returns the total balance of Asset Tokens in
+    /// the contract
     /// @param _totalAsset VaultAccount struct which stores total amount and shares for assets
     /// @param _totalBorrow VaultAccount struct which stores total amount and shares for borrows
     /// @return The balance of Asset Tokens held by contract
@@ -296,7 +315,8 @@ abstract contract FraxlendPairCore is FraxlendPairConstants, ERC20, Ownable, Pau
         return _totalAsset.amount - _totalBorrow.amount;
     }
 
-    /// @notice The ```_isSolvent``` function determines if a given borrower is solvent given an exchange rate
+    /// @notice The ```_isSolvent``` function determines if a given borrower is solvent given an
+    /// exchange rate
     /// @param _borrower The borrower address to check
     /// @param _exchangeRate The exchange rate, i.e. the amount of collateral to buy 1e18 asset
     /// @return Whether borrower is solvent
@@ -307,11 +327,13 @@ abstract contract FraxlendPairCore is FraxlendPairConstants, ERC20, Ownable, Pau
         uint256 _collateralAmount = userCollateralBalance[_borrower];
         if (_collateralAmount == 0) return false;
 
-        uint256 _ltv = (((_borrowerAmount * _exchangeRate) / EXCHANGE_PRECISION) * LTV_PRECISION) / _collateralAmount;
+        uint256 _ltv = (((_borrowerAmount * _exchangeRate) / EXCHANGE_PRECISION) * LTV_PRECISION)
+            / _collateralAmount;
         return _ltv <= maxLTV;
     }
 
-    /// @notice The ```_isPastMaturity``` function determines if the current block timestamp is past the maturityDate date
+    /// @notice The ```_isPastMaturity``` function determines if the current block timestamp is past
+    /// the maturityDate date
     /// @return Whether or not the debt is past maturity
     function _isPastMaturity() internal view returns (bool) {
         return maturityDate != 0 && block.timestamp > maturityDate;
@@ -345,7 +367,8 @@ abstract contract FraxlendPairCore is FraxlendPairConstants, ERC20, Ownable, Pau
     /// @notice Checks if msg.sender and _receiver are both an approved Lender
     /// @param _receiver An additional receiver address to check
     modifier approvedLender(address _receiver) {
-        if (lenderWhitelistActive && (!approvedLenders[msg.sender] || !approvedLenders[_receiver])) {
+        if (lenderWhitelistActive && (!approvedLenders[msg.sender] || !approvedLenders[_receiver]))
+        {
             revert OnlyApprovedLenders();
         }
         _;
@@ -353,9 +376,7 @@ abstract contract FraxlendPairCore is FraxlendPairConstants, ERC20, Ownable, Pau
 
     /// @notice Ensure function is not called when passed maturity
     modifier isNotPastMaturity() {
-        if (_isPastMaturity()) {
-            revert PastMaturity();
-        }
+        if (_isPastMaturity()) revert PastMaturity();
         _;
     }
 
@@ -382,34 +403,28 @@ abstract contract FraxlendPairCore is FraxlendPairConstants, ERC20, Ownable, Pau
     /// @param _deltaTime The time elapsed since last update
     /// @param _utilizationRate The utilization of assets in the Pair
     /// @param _newRatePerSec The new interest rate (per second)
-    event UpdateRate(uint256 _ratePerSec, uint256 _deltaTime, uint256 _utilizationRate, uint256 _newRatePerSec);
+    event UpdateRate(
+        uint256 _ratePerSec, uint256 _deltaTime, uint256 _utilizationRate, uint256 _newRatePerSec
+    );
 
-    /// @notice The ```addInterest``` function is a public implementation of _addInterest and allows 3rd parties to trigger interest accrual
+    /// @notice The ```addInterest``` function is a public implementation of _addInterest and allows
+    /// 3rd parties to trigger interest accrual
     /// @return _interestEarned The amount of interest accrued by all borrowers
     function addInterest()
         external
         nonReentrant
-        returns (
-            uint256 _interestEarned,
-            uint256 _feesAmount,
-            uint256 _feesShare,
-            uint64 _newRate
-        )
+        returns (uint256 _interestEarned, uint256 _feesAmount, uint256 _feesShare, uint64 _newRate)
     {
         return _addInterest();
     }
 
-    /// @notice The ```_addInterest``` function is invoked prior to every external function and is used to accrue interest and update interest rate
+    /// @notice The ```_addInterest``` function is invoked prior to every external function and is
+    /// used to accrue interest and update interest rate
     /// @dev Can only called once per block
     /// @return _interestEarned The amount of interest accrued by all borrowers
     function _addInterest()
         internal
-        returns (
-            uint256 _interestEarned,
-            uint256 _feesAmount,
-            uint256 _feesShare,
-            uint64 _newRate
-        )
+        returns (uint256 _interestEarned, uint256 _feesAmount, uint256 _feesShare, uint64 _newRate)
     {
         // Add interest only once per block
         CurrentRateInfo memory _currentRateInfo = currentRateInfo;
@@ -422,11 +437,10 @@ abstract contract FraxlendPairCore is FraxlendPairConstants, ERC20, Ownable, Pau
         VaultAccount memory _totalAsset = totalAsset;
         VaultAccount memory _totalBorrow = totalBorrow;
 
-        // If there are no borrows or contract is paused, no interest accrues and we reset interest rate
+        // If there are no borrows or contract is paused, no interest accrues and we reset interest
+        // rate
         if (_totalBorrow.shares == 0 || paused()) {
-            if (!paused()) {
-                _currentRateInfo.ratePerSec = DEFAULT_INT;
-            }
+            if (!paused()) _currentRateInfo.ratePerSec = DEFAULT_INT;
             _currentRateInfo.lastTimestamp = uint64(block.timestamp);
             _currentRateInfo.lastBlock = uint64(block.number);
 
@@ -461,28 +475,39 @@ abstract contract FraxlendPairCore is FraxlendPairConstants, ERC20, Ownable, Pau
             _currentRateInfo.lastBlock = uint64(block.number);
 
             // Calculate interest accrued
-            _interestEarned = (_deltaTime * _totalBorrow.amount * _currentRateInfo.ratePerSec) / 1e18;
+            _interestEarned =
+                (_deltaTime * _totalBorrow.amount * _currentRateInfo.ratePerSec) / 1e18;
 
             // Accumulate interest and fees, only if no overflow upon casting
             if (
-                _interestEarned + _totalBorrow.amount <= type(uint128).max &&
-                _interestEarned + _totalAsset.amount <= type(uint128).max
+                _interestEarned + _totalBorrow.amount <= type(uint128).max
+                    && _interestEarned + _totalAsset.amount <= type(uint128).max
             ) {
                 _totalBorrow.amount += uint128(_interestEarned);
                 _totalAsset.amount += uint128(_interestEarned);
                 if (_currentRateInfo.feeToProtocolRate > 0) {
-                    _feesAmount = (_interestEarned * _currentRateInfo.feeToProtocolRate) / FEE_PRECISION;
+                    _feesAmount =
+                        (_interestEarned * _currentRateInfo.feeToProtocolRate) / FEE_PRECISION;
 
-                    _feesShare = (_feesAmount * _totalAsset.shares) / (_totalAsset.amount - _feesAmount);
+                    _feesShare =
+                        (_feesAmount * _totalAsset.shares) / (_totalAsset.amount - _feesAmount);
 
-                    // Effects: Give new shares to this contract, effectively diluting lenders an amount equal to the fees
-                    // We can safely cast because _feesShare < _feesAmount < interestEarned which is always less than uint128
+                    // Effects: Give new shares to this contract, effectively diluting lenders an
+                    // amount equal to the fees
+                    // We can safely cast because _feesShare < _feesAmount < interestEarned which is
+                    // always less than uint128
                     _totalAsset.shares += uint128(_feesShare);
 
                     // Effects: write to storage
                     _mint(address(this), _feesShare);
                 }
-                emit AddInterest(_interestEarned, _currentRateInfo.ratePerSec, _deltaTime, _feesAmount, _feesShare);
+                emit AddInterest(
+                    _interestEarned,
+                    _currentRateInfo.ratePerSec,
+                    _deltaTime,
+                    _feesAmount,
+                    _feesShare
+                );
             }
 
             // Effects: write to storage
@@ -495,18 +520,21 @@ abstract contract FraxlendPairCore is FraxlendPairConstants, ERC20, Ownable, Pau
     // ============================================================================================
     // Functions: ExchangeRate
     // ============================================================================================
-    /// @notice The ```UpdateExchangeRate``` event is emitted when the Collateral:Asset exchange rate is updated
+    /// @notice The ```UpdateExchangeRate``` event is emitted when the Collateral:Asset exchange
+    /// rate is updated
     /// @param _rate The new rate given as the amount of Collateral Token to buy 1e18 Asset Token
     event UpdateExchangeRate(uint256 _rate);
 
-    /// @notice The ```updateExchangeRate``` function is the external implementation of _updateExchangeRate.
+    /// @notice The ```updateExchangeRate``` function is the external implementation of
+    /// _updateExchangeRate.
     /// @dev This function is invoked at most once per block as these queries can be expensive
     /// @return _exchangeRate The new exchange rate
     function updateExchangeRate() external nonReentrant returns (uint256 _exchangeRate) {
         _exchangeRate = _updateExchangeRate();
     }
 
-    /// @notice The ```_updateExchangeRate``` function retrieves the latest exchange rate. i.e how much collateral to buy 1e18 asset.
+    /// @notice The ```_updateExchangeRate``` function retrieves the latest exchange rate. i.e how
+    /// much collateral to buy 1e18 asset.
     /// @dev This function is invoked at most once per block as these queries can be expensive
     /// @return _exchangeRate The new exchange rate
     function _updateExchangeRate() internal returns (uint256 _exchangeRate) {
@@ -517,18 +545,14 @@ abstract contract FraxlendPairCore is FraxlendPairConstants, ERC20, Ownable, Pau
 
         uint256 _price = uint256(1e36);
         if (oracleMultiply != address(0)) {
-            (, int256 _answer, , , ) = AggregatorV3Interface(oracleMultiply).latestRoundData();
-            if (_answer <= 0) {
-                revert OracleLTEZero(oracleMultiply);
-            }
+            (, int256 _answer,,,) = AggregatorV3Interface(oracleMultiply).latestRoundData();
+            if (_answer <= 0) revert OracleLTEZero(oracleMultiply);
             _price = _price * uint256(_answer);
         }
 
         if (oracleDivide != address(0)) {
-            (, int256 _answer, , , ) = AggregatorV3Interface(oracleDivide).latestRoundData();
-            if (_answer <= 0) {
-                revert OracleLTEZero(oracleDivide);
-            }
+            (, int256 _answer,,,) = AggregatorV3Interface(oracleDivide).latestRoundData();
+            if (_answer <= 0) revert OracleLTEZero(oracleDivide);
             _price = _price / uint256(_answer);
         }
 
@@ -554,8 +578,10 @@ abstract contract FraxlendPairCore is FraxlendPairConstants, ERC20, Ownable, Pau
     event Deposit(address indexed caller, address indexed owner, uint256 assets, uint256 shares);
 
     /// @notice The ```_deposit``` function is the internal implementation for lending assets
-    /// @dev Caller must invoke ```ERC20.approve``` on the Asset Token contract prior to calling function
-    /// @param _totalAsset An in memory VaultAccount struct representing the total amounts and shares for the Asset Token
+    /// @dev Caller must invoke ```ERC20.approve``` on the Asset Token contract prior to calling
+    /// function
+    /// @param _totalAsset An in memory VaultAccount struct representing the total amounts and
+    /// shares for the Asset Token
     /// @param _amount The amount of Asset Token to be transferred
     /// @param _shares The amount of Asset Shares (fTokens) to be minted
     /// @param _receiver The address to receive the Asset Shares (fTokens)
@@ -578,8 +604,10 @@ abstract contract FraxlendPairCore is FraxlendPairConstants, ERC20, Ownable, Pau
         emit Deposit(msg.sender, _receiver, _amount, _shares);
     }
 
-    /// @notice The ```deposit``` function allows a user to Lend Assets by specifying the amount of Asset Tokens to lend
-    /// @dev Caller must invoke ```ERC20.approve``` on the Asset Token contract prior to calling function
+    /// @notice The ```deposit``` function allows a user to Lend Assets by specifying the amount of
+    /// Asset Tokens to lend
+    /// @dev Caller must invoke ```ERC20.approve``` on the Asset Token contract prior to calling
+    /// function
     /// @param _amount The amount of Asset Token to transfer to Pair
     /// @param _receiver The address to receive the Asset Shares (fTokens)
     /// @return _sharesReceived The number of fTokens received for the deposit
@@ -597,7 +625,8 @@ abstract contract FraxlendPairCore is FraxlendPairConstants, ERC20, Ownable, Pau
         _deposit(_totalAsset, _amount.toUint128(), _sharesReceived.toUint128(), _receiver);
     }
 
-    /// @notice The ```Withdraw``` event fires when a user redeems their fTokens for the underlying asset
+    /// @notice The ```Withdraw``` event fires when a user redeems their fTokens for the underlying
+    /// asset
     /// @param caller the msg.sender
     /// @param receiver The address to which the underlying asset will be transferred to
     /// @param owner The owner of the fTokens
@@ -611,9 +640,12 @@ abstract contract FraxlendPairCore is FraxlendPairConstants, ERC20, Ownable, Pau
         uint256 shares
     );
 
-    /// @notice The ```_redeem``` function is an internal implementation which allows a Lender to pull their Asset Tokens out of the Pair
-    /// @dev Caller must invoke ```ERC20.approve``` on the Asset Token contract prior to calling function
-    /// @param _totalAsset An in-memory VaultAccount struct which holds the total amount of Asset Tokens and the total number of Asset Shares (fTokens)
+    /// @notice The ```_redeem``` function is an internal implementation which allows a Lender to
+    /// pull their Asset Tokens out of the Pair
+    /// @dev Caller must invoke ```ERC20.approve``` on the Asset Token contract prior to calling
+    /// function
+    /// @param _totalAsset An in-memory VaultAccount struct which holds the total amount of Asset
+    /// Tokens and the total number of Asset Shares (fTokens)
     /// @param _amountToReturn The number of Asset Tokens to return
     /// @param _shares The number of Asset Shares (fTokens) to burn
     /// @param _receiver The address to which the Asset Tokens will be transferred
@@ -650,16 +682,17 @@ abstract contract FraxlendPairCore is FraxlendPairConstants, ERC20, Ownable, Pau
         emit Withdraw(msg.sender, _receiver, _owner, _amountToReturn, _shares);
     }
 
-    /// @notice The ```redeem``` function allows the caller to redeem their Asset Shares for Asset Tokens
+    /// @notice The ```redeem``` function allows the caller to redeem their Asset Shares for Asset
+    /// Tokens
     /// @param _shares The number of Asset Shares (fTokens) to burn for Asset Tokens
     /// @param _receiver The address to which the Asset Tokens will be transferred
     /// @param _owner The owner of the Asset Shares (fTokens)
     /// @return _amountToReturn The amount of Asset Tokens to be transferred
-    function redeem(
-        uint256 _shares,
-        address _receiver,
-        address _owner
-    ) external nonReentrant returns (uint256 _amountToReturn) {
+    function redeem(uint256 _shares, address _receiver, address _owner)
+        external
+        nonReentrant
+        returns (uint256 _amountToReturn)
+    {
         _addInterest();
         VaultAccount memory _totalAsset = totalAsset;
         _amountToReturn = _totalAsset.toAmount(_shares, false);
@@ -686,7 +719,10 @@ abstract contract FraxlendPairCore is FraxlendPairConstants, ERC20, Ownable, Pau
     /// @param _borrowAmount The amount of the Asset Token to borrow
     /// @param _receiver The address to receive the Asset Tokens
     /// @return _sharesAdded The amount of borrow shares the msg.sender will be debited
-    function _borrowAsset(uint128 _borrowAmount, address _receiver) internal returns (uint256 _sharesAdded) {
+    function _borrowAsset(uint128 _borrowAmount, address _receiver)
+        internal
+        returns (uint256 _sharesAdded)
+    {
         VaultAccount memory _totalBorrow = totalBorrow;
 
         // Check available capital
@@ -699,16 +735,15 @@ abstract contract FraxlendPairCore is FraxlendPairConstants, ERC20, Ownable, Pau
         _sharesAdded = _totalBorrow.toShares(_borrowAmount, true);
         _totalBorrow.amount += _borrowAmount;
         _totalBorrow.shares += uint128(_sharesAdded);
-        // NOTE: we can safely cast here because shares are always less than amount and _borrowAmount is uint128
+        // NOTE: we can safely cast here because shares are always less than amount and
+        // _borrowAmount is uint128
 
         // Effects: write back to storage
         totalBorrow = _totalBorrow;
         userBorrowShares[msg.sender] += _sharesAdded;
 
         // Interactions
-        if (_receiver != address(this)) {
-            assetContract.safeTransfer(_receiver, _borrowAmount);
-        }
+        if (_receiver != address(this)) assetContract.safeTransfer(_receiver, _borrowAmount);
         emit BorrowAsset(msg.sender, _receiver, _borrowAmount, _sharesAdded);
     }
 
@@ -718,11 +753,7 @@ abstract contract FraxlendPairCore is FraxlendPairConstants, ERC20, Ownable, Pau
     /// @param _collateralAmount The amount of Collateral Token to transfer to Pair
     /// @param _receiver The address which will receive the Asset Tokens
     /// @return _shares The number of borrow Shares the msg.sender will be debited
-    function borrowAsset(
-        uint256 _borrowAmount,
-        uint256 _collateralAmount,
-        address _receiver
-    )
+    function borrowAsset(uint256 _borrowAmount, uint256 _collateralAmount, address _receiver)
         external
         isNotPastMaturity
         whenNotPaused
@@ -733,23 +764,22 @@ abstract contract FraxlendPairCore is FraxlendPairConstants, ERC20, Ownable, Pau
     {
         _addInterest();
         _updateExchangeRate();
-        if (_collateralAmount > 0) {
-            _addCollateral(msg.sender, _collateralAmount, msg.sender);
-        }
+        if (_collateralAmount > 0) _addCollateral(msg.sender, _collateralAmount, msg.sender);
         _shares = _borrowAsset(_borrowAmount.toUint128(), _receiver);
     }
 
-    event AddCollateral(address indexed _sender, address indexed _borrower, uint256 _collateralAmount);
+    event AddCollateral(
+        address indexed _sender, address indexed _borrower, uint256 _collateralAmount
+    );
 
-    /// @notice The ```_addCollateral``` function is an internal implementation for adding collateral to a borrowers position
+    /// @notice The ```_addCollateral``` function is an internal implementation for adding
+    /// collateral to a borrowers position
     /// @param _sender The source of funds for the new collateral
     /// @param _collateralAmount The amount of Collateral Token to be transferred
     /// @param _borrower The borrower account for which the collateral should be credited
-    function _addCollateral(
-        address _sender,
-        uint256 _collateralAmount,
-        address _borrower
-    ) internal {
+    function _addCollateral(address _sender, uint256 _collateralAmount, address _borrower)
+        internal
+    {
         // Effects: write to state
         userCollateralBalance[_borrower] += _collateralAmount;
         totalCollateral += _collateralAmount;
@@ -761,16 +791,23 @@ abstract contract FraxlendPairCore is FraxlendPairConstants, ERC20, Ownable, Pau
         emit AddCollateral(_sender, _borrower, _collateralAmount);
     }
 
-    /// @notice The ```addCollateral``` function allows the caller to add Collateral Token to a borrowers position
-    /// @dev msg.sender must call ERC20.approve() on the Collateral Token contract prior to invocation
+    /// @notice The ```addCollateral``` function allows the caller to add Collateral Token to a
+    /// borrowers position
+    /// @dev msg.sender must call ERC20.approve() on the Collateral Token contract prior to
+    /// invocation
     /// @param _collateralAmount The amount of Collateral Token to be added to borrower's position
     /// @param _borrower The account to be credited
-    function addCollateral(uint256 _collateralAmount, address _borrower) external nonReentrant isNotPastMaturity {
+    function addCollateral(uint256 _collateralAmount, address _borrower)
+        external
+        nonReentrant
+        isNotPastMaturity
+    {
         _addInterest();
         _addCollateral(msg.sender, _collateralAmount, _borrower);
     }
 
-    /// @notice The ```RemoveCollateral``` event is emitted when collateral is removed from a borrower's position
+    /// @notice The ```RemoveCollateral``` event is emitted when collateral is removed from a
+    /// borrower's position
     /// @param _sender The account from which funds are transferred
     /// @param _collateralAmount The amount of Collateral Token to be transferred
     /// @param _receiver The address to which Collateral Tokens will be transferred
@@ -781,15 +818,15 @@ abstract contract FraxlendPairCore is FraxlendPairConstants, ERC20, Ownable, Pau
         address indexed _borrower
     );
 
-    /// @notice The ```_removeCollateral``` function is the internal implementation for removing collateral from a borrower's position
-    /// @param _collateralAmount The amount of Collateral Token to remove from the borrower's position
+    /// @notice The ```_removeCollateral``` function is the internal implementation for removing
+    /// collateral from a borrower's position
+    /// @param _collateralAmount The amount of Collateral Token to remove from the borrower's
+    /// position
     /// @param _receiver The address to receive the Collateral Token transferred
     /// @param _borrower The borrower whose account will be debited the Collateral amount
-    function _removeCollateral(
-        uint256 _collateralAmount,
-        address _receiver,
-        address _borrower
-    ) internal {
+    function _removeCollateral(uint256 _collateralAmount, address _receiver, address _borrower)
+        internal
+    {
         // Effects: write to state
         // Following line will revert on underflow if _collateralAmount > userCollateralBalance
         userCollateralBalance[_borrower] -= _collateralAmount;
@@ -803,7 +840,8 @@ abstract contract FraxlendPairCore is FraxlendPairConstants, ERC20, Ownable, Pau
         emit RemoveCollateral(msg.sender, _collateralAmount, _receiver, _borrower);
     }
 
-    /// @notice The ```removeCollateral``` function is used to remove collateral from msg.sender's borrow position
+    /// @notice The ```removeCollateral``` function is used to remove collateral from msg.sender's
+    /// borrow position
     /// @dev msg.sender must be solvent after invocation or transaction will revert
     /// @param _collateralAmount The amount of Collateral Token to transfer
     /// @param _receiver The address to receive the transferred funds
@@ -814,9 +852,7 @@ abstract contract FraxlendPairCore is FraxlendPairConstants, ERC20, Ownable, Pau
     {
         _addInterest();
         // Note: exchange rate is irrelevant when borrower has no debt shares
-        if (userBorrowShares[msg.sender] > 0) {
-            _updateExchangeRate();
-        }
+        if (userBorrowShares[msg.sender] > 0) _updateExchangeRate();
         _removeCollateral(_collateralAmount, _receiver, msg.sender);
     }
 
@@ -824,11 +860,16 @@ abstract contract FraxlendPairCore is FraxlendPairConstants, ERC20, Ownable, Pau
     /// @param _payer The address paying for the repayment
     /// @param _borrower The borrower whose account will be credited
     /// @param _amountToRepay The amount of Asset token to be transferred
-    /// @param _shares The amount of Borrow Shares which will be debited from the borrower after repayment
-    event RepayAsset(address indexed _payer, address indexed _borrower, uint256 _amountToRepay, uint256 _shares);
+    /// @param _shares The amount of Borrow Shares which will be debited from the borrower after
+    /// repayment
+    event RepayAsset(
+        address indexed _payer, address indexed _borrower, uint256 _amountToRepay, uint256 _shares
+    );
 
-    /// @notice The ```_repayAsset``` function is the internal implementation for repaying a borrow position
-    /// @dev The payer must have called ERC20.approve() on the Asset Token contract prior to invocation
+    /// @notice The ```_repayAsset``` function is the internal implementation for repaying a borrow
+    /// position
+    /// @dev The payer must have called ERC20.approve() on the Asset Token contract prior to
+    /// invocation
     /// @param _totalBorrow An in memory copy of the totalBorrow VaultAccount struct
     /// @param _amountToRepay The amount of Asset Token to transfer
     /// @param _shares The number of Borrow Shares the sender is repaying
@@ -856,16 +897,24 @@ abstract contract FraxlendPairCore is FraxlendPairConstants, ERC20, Ownable, Pau
         emit RepayAsset(_payer, _borrower, _amountToRepay, _shares);
     }
 
-    /// @notice The ```repayAsset``` function allows the caller to pay down the debt for a given borrower.
+    /// @notice The ```repayAsset``` function allows the caller to pay down the debt for a given
+    /// borrower.
     /// @dev Caller must first invoke ```ERC20.approve()``` for the Asset Token contract
     /// @param _shares The number of Borrow Shares which will be repaid by the call
     /// @param _borrower The account for which the debt will be reduced
-    /// @return _amountToRepay The amount of Asset Tokens which were transferred in order to repay the Borrow Shares
-    function repayAsset(uint256 _shares, address _borrower) external nonReentrant returns (uint256 _amountToRepay) {
+    /// @return _amountToRepay The amount of Asset Tokens which were transferred in order to repay
+    /// the Borrow Shares
+    function repayAsset(uint256 _shares, address _borrower)
+        external
+        nonReentrant
+        returns (uint256 _amountToRepay)
+    {
         _addInterest();
         VaultAccount memory _totalBorrow = totalBorrow;
         _amountToRepay = _totalBorrow.toAmount(_shares, true);
-        _repayAsset(_totalBorrow, _amountToRepay.toUint128(), _shares.toUint128(), msg.sender, _borrower);
+        _repayAsset(
+            _totalBorrow, _amountToRepay.toUint128(), _shares.toUint128(), msg.sender, _borrower
+        );
     }
 
     // ============================================================================================
@@ -874,8 +923,10 @@ abstract contract FraxlendPairCore is FraxlendPairConstants, ERC20, Ownable, Pau
     /// @notice The ```Liquidate``` event is emitted when a liquidation occurs
     /// @param _borrower The borrower account for which the liquidation occurred
     /// @param _collateralForLiquidator The amount of Collateral Token transferred to the liquidator
-    /// @param _sharesToLiquidate The number of Borrow Shares the liquidator repaid on behalf of the borrower
-    /// @param _sharesToAdjust The number of Borrow Shares that were adjusted on liabilities and assets (a writeoff)
+    /// @param _sharesToLiquidate The number of Borrow Shares the liquidator repaid on behalf of the
+    /// borrower
+    /// @param _sharesToAdjust The number of Borrow Shares that were adjusted on liabilities and
+    /// assets (a writeoff)
     event Liquidate(
         address indexed _borrower,
         uint256 _collateralForLiquidator,
@@ -885,25 +936,29 @@ abstract contract FraxlendPairCore is FraxlendPairConstants, ERC20, Ownable, Pau
         uint256 _amountToAdjust
     );
 
-    /// @notice The ```liquidate``` function allows a third party to repay a borrower's debt if they have become insolvent
-    /// @dev Caller must invoke ```ERC20.approve``` on the Asset Token contract prior to calling ```Liquidate()```
+    /// @notice The ```liquidate``` function allows a third party to repay a borrower's debt if they
+    /// have become insolvent
+    /// @dev Caller must invoke ```ERC20.approve``` on the Asset Token contract prior to calling
+    /// ```Liquidate()```
     /// @param _sharesToLiquidate The number of Borrow Shares repaid by the liquidator
     /// @param _deadline The timestamp after which tx will revert
-    /// @param _borrower The account for which the repayment is credited and from whom collateral will be taken
-    /// @return _collateralForLiquidator The amount of Collateral Token transferred to the liquidator
-    function liquidate(
-        uint128 _sharesToLiquidate,
-        uint256 _deadline,
-        address _borrower
-    ) external whenNotPaused nonReentrant approvedLender(msg.sender) returns (uint256 _collateralForLiquidator) {
+    /// @param _borrower The account for which the repayment is credited and from whom collateral
+    /// will be taken
+    /// @return _collateralForLiquidator The amount of Collateral Token transferred to the
+    /// liquidator
+    function liquidate(uint128 _sharesToLiquidate, uint256 _deadline, address _borrower)
+        external
+        whenNotPaused
+        nonReentrant
+        approvedLender(msg.sender)
+        returns (uint256 _collateralForLiquidator)
+    {
         if (block.timestamp > _deadline) revert PastDeadline(block.timestamp, _deadline);
 
         _addInterest();
         uint256 _exchangeRate = _updateExchangeRate();
 
-        if (_isSolvent(_borrower, _exchangeRate)) {
-            revert BorrowerSolvent();
-        }
+        if (_isSolvent(_borrower, _exchangeRate)) revert BorrowerSolvent();
 
         // Read from state
         VaultAccount memory _totalBorrow = totalBorrow;
@@ -914,27 +969,38 @@ abstract contract FraxlendPairCore is FraxlendPairConstants, ERC20, Ownable, Pau
         int256 _leftoverCollateral;
         {
             // Checks & Calculations
-            // Determine the liquidation amount in collateral units (i.e. how much debt is liquidator going to repay)
-            uint256 _liquidationAmountInCollateralUnits = ((_totalBorrow.toAmount(_sharesToLiquidate, false) *
-                _exchangeRate) / EXCHANGE_PRECISION);
+            // Determine the liquidation amount in collateral units (i.e. how much debt is
+            // liquidator going to repay)
+            uint256 _liquidationAmountInCollateralUnits = (
+                (_totalBorrow.toAmount(_sharesToLiquidate, false) * _exchangeRate)
+                    / EXCHANGE_PRECISION
+            );
 
-            // We first optimistically calculate the amount of collateral to give the liquidator based on the higher clean liquidation fee
+            // We first optimistically calculate the amount of collateral to give the liquidator
+            // based on the higher clean liquidation fee
             // This fee only applies if the liquidator does a full liquidation
-            uint256 _optimisticCollateralForLiquidator = (_liquidationAmountInCollateralUnits *
-                (LIQ_PRECISION + cleanLiquidationFee)) / LIQ_PRECISION;
+            uint256 _optimisticCollateralForLiquidator = (
+                _liquidationAmountInCollateralUnits * (LIQ_PRECISION + cleanLiquidationFee)
+            ) / LIQ_PRECISION;
 
-            // Because interest accrues every block, _liquidationAmountInCollateralUnits from a few lines up is an ever increasing value
-            // This means that leftoverCollateral can occasionally go negative by a few hundred wei (cleanLiqFee premium covers this for liquidator)
-            _leftoverCollateral = (_userCollateralBalance.toInt256() - _optimisticCollateralForLiquidator.toInt256());
+            // Because interest accrues every block, _liquidationAmountInCollateralUnits from a few
+            // lines up is an ever increasing value
+            // This means that leftoverCollateral can occasionally go negative by a few hundred wei
+            // (cleanLiqFee premium covers this for liquidator)
+            _leftoverCollateral =
+                (_userCollateralBalance.toInt256() - _optimisticCollateralForLiquidator.toInt256());
 
-            // If cleanLiquidation fee results in no leftover collateral, give liquidator all the collateral
+            // If cleanLiquidation fee results in no leftover collateral, give liquidator all the
+            // collateral
             // This will only be true when there liquidator is cleaning out the position
             _collateralForLiquidator = _leftoverCollateral <= 0
                 ? _userCollateralBalance
-                : (_liquidationAmountInCollateralUnits * (LIQ_PRECISION + dirtyLiquidationFee)) / LIQ_PRECISION;
+                : (_liquidationAmountInCollateralUnits * (LIQ_PRECISION + dirtyLiquidationFee))
+                    / LIQ_PRECISION;
         }
         // Calculated here for use during repayment, grouped with other calcs before effects start
-        uint128 _amountLiquidatorToRepay = (_totalBorrow.toAmount(_sharesToLiquidate, true)).toUint128();
+        uint128 _amountLiquidatorToRepay =
+            (_totalBorrow.toAmount(_sharesToLiquidate, true)).toUint128();
 
         // Determine if and how much debt to adjust
         uint128 _sharesToAdjust;
@@ -947,7 +1013,8 @@ abstract contract FraxlendPairCore is FraxlendPairConstants, ERC20, Ownable, Pau
                     // Write off bad debt
                     _amountToAdjust = (_totalBorrow.toAmount(_sharesToAdjust, false)).toUint128();
 
-                    // Note: Ensure this memory struct will be passed to _repayAsset for write to state
+                    // Note: Ensure this memory struct will be passed to _repayAsset for write to
+                    // state
                     _totalBorrow.amount -= _amountToAdjust;
 
                     // Effects: write to state
@@ -983,13 +1050,16 @@ abstract contract FraxlendPairCore is FraxlendPairConstants, ERC20, Ownable, Pau
     // Functions: Leverage
     // ============================================================================================
 
-    /// @notice The ```LeveragedPosition``` event is emitted when a borrower takes out a new leveraged position
+    /// @notice The ```LeveragedPosition``` event is emitted when a borrower takes out a new
+    /// leveraged position
     /// @param _borrower The account for which the debt is debited
     /// @param _swapperAddress The address of the swapper which conforms the FraxSwap interface
     /// @param _borrowAmount The amount of Asset Token to be borrowed to be borrowed
     /// @param _borrowShares The number of Borrow Shares the borrower is credited
-    /// @param _initialCollateralAmount The amount of initial Collateral Tokens supplied by the borrower
-    /// @param _amountCollateralOut The amount of Collateral Token which was received for the Asset Tokens
+    /// @param _initialCollateralAmount The amount of initial Collateral Tokens supplied by the
+    /// borrower
+    /// @param _amountCollateralOut The amount of Collateral Token which was received for the Asset
+    /// Tokens
     event LeveragedPosition(
         address indexed _borrower,
         address _swapperAddress,
@@ -999,14 +1069,21 @@ abstract contract FraxlendPairCore is FraxlendPairConstants, ERC20, Ownable, Pau
         uint256 _amountCollateralOut
     );
 
-    /// @notice The ```leveragedPosition``` function allows a user to enter a leveraged borrow position with minimal upfront Collateral
-    /// @dev Caller must invoke ```ERC20.approve()``` on the Collateral Token contract prior to calling function
-    /// @param _swapperAddress The address of the whitelisted swapper to use to swap borrowed Asset Tokens for Collateral Tokens
+    /// @notice The ```leveragedPosition``` function allows a user to enter a leveraged borrow
+    /// position with minimal upfront Collateral
+    /// @dev Caller must invoke ```ERC20.approve()``` on the Collateral Token contract prior to
+    /// calling function
+    /// @param _swapperAddress The address of the whitelisted swapper to use to swap borrowed Asset
+    /// Tokens for Collateral Tokens
     /// @param _borrowAmount The amount of Asset Tokens borrowed
-    /// @param _initialCollateralAmount The initial amount of Collateral Tokens supplied by the borrower
-    /// @param _amountCollateralOutMin The minimum amount of Collateral Tokens to be received in exchange for the borrowed Asset Tokens
-    /// @param _path An array containing the addresses of ERC20 tokens to swap.  Adheres to UniV2 style path params.
-    /// @return _totalCollateralBalance The total amount of Collateral Tokens added to a users account (initial + swap)
+    /// @param _initialCollateralAmount The initial amount of Collateral Tokens supplied by the
+    /// borrower
+    /// @param _amountCollateralOutMin The minimum amount of Collateral Tokens to be received in
+    /// exchange for the borrowed Asset Tokens
+    /// @param _path An array containing the addresses of ERC20 tokens to swap.  Adheres to UniV2
+    /// style path params.
+    /// @return _totalCollateralBalance The total amount of Collateral Tokens added to a users
+    /// account (initial + swap)
     function leveragedPosition(
         address _swapperAddress,
         uint256 _borrowAmount,
@@ -1028,9 +1105,7 @@ abstract contract FraxlendPairCore is FraxlendPairConstants, ERC20, Ownable, Pau
         IERC20 _assetContract = assetContract;
         IERC20 _collateralContract = collateralContract;
 
-        if (!swappers[_swapperAddress]) {
-            revert BadSwapper();
-        }
+        if (!swappers[_swapperAddress]) revert BadSwapper();
         if (_path[0] != address(_assetContract)) {
             revert InvalidPath(address(_assetContract), _path[0]);
         }
@@ -1053,11 +1128,7 @@ abstract contract FraxlendPairCore is FraxlendPairConstants, ERC20, Ownable, Pau
         // Even though swappers are trusted, we verify the balance before and after swap
         uint256 _initialCollateralBalance = _collateralContract.balanceOf(address(this));
         ISwapper(_swapperAddress).swapExactTokensForTokens(
-            _borrowAmount,
-            _amountCollateralOutMin,
-            _path,
-            address(this),
-            block.timestamp
+            _borrowAmount, _amountCollateralOutMin, _path, address(this), block.timestamp
         );
         uint256 _finalCollateralBalance = _collateralContract.balanceOf(address(this));
 
@@ -1068,7 +1139,8 @@ abstract contract FraxlendPairCore is FraxlendPairConstants, ERC20, Ownable, Pau
             revert SlippageTooHigh(_amountCollateralOutMin, _amountCollateralOut);
         }
 
-        // address(this) as _sender means no transfer occurs as the pair has already received the collateral during swap
+        // address(this) as _sender means no transfer occurs as the pair has already received the
+        // collateral during swap
         _addCollateral(address(this), _amountCollateralOut, msg.sender);
 
         _totalCollateralBalance = _initialCollateralAmount + _amountCollateralOut;
@@ -1082,7 +1154,8 @@ abstract contract FraxlendPairCore is FraxlendPairConstants, ERC20, Ownable, Pau
         );
     }
 
-    /// @notice The ```RepayAssetWithCollateral``` event is emitted whenever ```repayAssetWithCollateral()``` is invoked
+    /// @notice The ```RepayAssetWithCollateral``` event is emitted whenever
+    /// ```repayAssetWithCollateral()``` is invoked
     /// @param _borrower The borrower account for which the repayment is taking place
     /// @param _swapperAddress The address of the whitelisted swapper to use for token swaps
     /// @param _collateralToSwap The amount of Collateral Token to swap and use for repayment
@@ -1096,12 +1169,15 @@ abstract contract FraxlendPairCore is FraxlendPairConstants, ERC20, Ownable, Pau
         uint256 _sharesRepaid
     );
 
-    /// @notice The ```repayAssetWithCollateral``` function allows a borrower to repay their debt using existing collateral in contract
+    /// @notice The ```repayAssetWithCollateral``` function allows a borrower to repay their debt
+    /// using existing collateral in contract
     /// @param _swapperAddress The address of the whitelisted swapper to use for token swaps
     /// @param _collateralToSwap The amount of Collateral Tokens to swap for Asset Tokens
     /// @param _amountAssetOutMin The minimum amount of Asset Tokens to receive during the swap
-    /// @param _path An array containing the addresses of ERC20 tokens to swap.  Adheres to UniV2 style path params.
-    /// @return _amountAssetOut The amount of Asset Tokens received for the Collateral Tokens, the amount the borrowers account was credited
+    /// @param _path An array containing the addresses of ERC20 tokens to swap.  Adheres to UniV2
+    /// style path params.
+    /// @return _amountAssetOut The amount of Asset Tokens received for the Collateral Tokens, the
+    /// amount the borrowers account was credited
     function repayAssetWithCollateral(
         address _swapperAddress,
         uint256 _collateralToSwap,
@@ -1114,9 +1190,7 @@ abstract contract FraxlendPairCore is FraxlendPairConstants, ERC20, Ownable, Pau
         IERC20 _assetContract = assetContract;
         IERC20 _collateralContract = collateralContract;
 
-        if (!swappers[_swapperAddress]) {
-            revert BadSwapper();
-        }
+        if (!swappers[_swapperAddress]) revert BadSwapper();
         if (_path[0] != address(_collateralContract)) {
             revert InvalidPath(address(_collateralContract), _path[0]);
         }
@@ -1125,7 +1199,8 @@ abstract contract FraxlendPairCore is FraxlendPairConstants, ERC20, Ownable, Pau
         }
 
         // Effects: bookkeeping & write to state
-        // Debit users collateral balance in preparation for swap, setting _recipient to address(this) means no transfer occurs
+        // Debit users collateral balance in preparation for swap, setting _recipient to
+        // address(this) means no transfer occurs
         _removeCollateral(_collateralToSwap, address(this), msg.sender);
 
         // Interactions
@@ -1134,11 +1209,7 @@ abstract contract FraxlendPairCore is FraxlendPairConstants, ERC20, Ownable, Pau
         // Even though swappers are trusted, we verify the balance before and after swap
         uint256 _initialAssetBalance = _assetContract.balanceOf(address(this));
         ISwapper(_swapperAddress).swapExactTokensForTokens(
-            _collateralToSwap,
-            _amountAssetOutMin,
-            _path,
-            address(this),
-            block.timestamp
+            _collateralToSwap, _amountAssetOutMin, _path, address(this), block.timestamp
         );
         uint256 _finalAssetBalance = _assetContract.balanceOf(address(this));
 
@@ -1153,9 +1224,18 @@ abstract contract FraxlendPairCore is FraxlendPairConstants, ERC20, Ownable, Pau
         uint256 _sharesToRepay = _totalBorrow.toShares(_amountAssetOut, false);
 
         // Effects: write to state
-        // Note: setting _payer to address(this) means no actual transfer will occur.  Contract already has funds
-        _repayAsset(_totalBorrow, _amountAssetOut.toUint128(), _sharesToRepay.toUint128(), address(this), msg.sender);
+        // Note: setting _payer to address(this) means no actual transfer will occur.  Contract
+        // already has funds
+        _repayAsset(
+            _totalBorrow,
+            _amountAssetOut.toUint128(),
+            _sharesToRepay.toUint128(),
+            address(this),
+            msg.sender
+        );
 
-        emit RepayAssetWithCollateral(msg.sender, _swapperAddress, _collateralToSwap, _amountAssetOut, _sharesToRepay);
+        emit RepayAssetWithCollateral(
+            msg.sender, _swapperAddress, _collateralToSwap, _amountAssetOut, _sharesToRepay
+        );
     }
 }

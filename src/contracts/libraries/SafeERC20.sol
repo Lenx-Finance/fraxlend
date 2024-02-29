@@ -8,8 +8,10 @@ import { SafeERC20 as OZSafeERC20 } from "@openzeppelin/contracts/token/ERC20/ut
 // solhint-disable max-line-length
 
 /// @title SafeERC20 provides helper functions for safe transfers as well as safe metadata access
-/// @author Library originally written by @Boring_Crypto github.com/boring_crypto, modified by Drake Evans (Frax Finance) github.com/drakeevans
-/// @dev original: https://github.com/boringcrypto/BoringSolidity/blob/fed25c5d43cb7ce20764cd0b838e21a02ea162e9/contracts/libraries/BoringERC20.sol
+/// @author Library originally written by @Boring_Crypto github.com/boring_crypto, modified by Drake
+/// Evans (Frax Finance) github.com/drakeevans
+/// @dev original:
+/// https://github.com/boringcrypto/BoringSolidity/blob/fed25c5d43cb7ce20764cd0b838e21a02ea162e9/contracts/libraries/BoringERC20.sol
 library SafeERC20 {
     bytes4 private constant SIG_SYMBOL = 0x95d89b41; // symbol()
     bytes4 private constant SIG_NAME = 0x06fdde03; // name()
@@ -20,9 +22,7 @@ library SafeERC20 {
             return abi.decode(data, (string));
         } else if (data.length == 32) {
             uint8 i = 0;
-            while (i < 32 && data[i] != 0) {
-                i++;
-            }
+            while (i < 32 && data[i] != 0) i++;
             bytes memory bytesArray = new bytes(i);
             for (i = 0; i < 32 && data[i] != 0; i++) {
                 bytesArray[i] = data[i];
@@ -37,7 +37,8 @@ library SafeERC20 {
     /// @param token The address of the ERC-20 token contract.
     /// @return (string) Token symbol.
     function safeSymbol(IERC20 token) internal view returns (string memory) {
-        (bool success, bytes memory data) = address(token).staticcall(abi.encodeWithSelector(SIG_SYMBOL));
+        (bool success, bytes memory data) =
+            address(token).staticcall(abi.encodeWithSelector(SIG_SYMBOL));
         return success ? returnDataToString(data) : "???";
     }
 
@@ -45,7 +46,8 @@ library SafeERC20 {
     /// @param token The address of the ERC-20 token contract.
     /// @return (string) Token name.
     function safeName(IERC20 token) internal view returns (string memory) {
-        (bool success, bytes memory data) = address(token).staticcall(abi.encodeWithSelector(SIG_NAME));
+        (bool success, bytes memory data) =
+            address(token).staticcall(abi.encodeWithSelector(SIG_NAME));
         return success ? returnDataToString(data) : "???";
     }
 
@@ -53,24 +55,16 @@ library SafeERC20 {
     /// @param token The address of the ERC-20 token contract.
     /// @return (uint8) Token decimals.
     function safeDecimals(IERC20 token) internal view returns (uint8) {
-        (bool success, bytes memory data) = address(token).staticcall(abi.encodeWithSelector(SIG_DECIMALS));
+        (bool success, bytes memory data) =
+            address(token).staticcall(abi.encodeWithSelector(SIG_DECIMALS));
         return success && data.length == 32 ? abi.decode(data, (uint8)) : 18;
     }
 
-    function safeTransfer(
-        IERC20 token,
-        address to,
-        uint256 value
-    ) internal {
+    function safeTransfer(IERC20 token, address to, uint256 value) internal {
         OZSafeERC20.safeTransfer(token, to, value);
     }
 
-    function safeTransferFrom(
-        IERC20 token,
-        address from,
-        address to,
-        uint256 value
-    ) internal {
+    function safeTransferFrom(IERC20 token, address from, address to, uint256 value) internal {
         OZSafeERC20.safeTransferFrom(token, from, to, value);
     }
 }

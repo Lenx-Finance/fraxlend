@@ -21,16 +21,18 @@ contract InterestPairTest is BasePairTest {
         faucetFunds(collateral, _collateralAmount);
         lendTokenViaDeposit(_amountInPool, users[0]);
         borrowToken(uint128(_amountToBorrow), _collateralAmount, users[2]);
-        (, , , uint256 _interestRatePerSecond) = pair.currentRateInfo();
+        (,,, uint256 _interestRatePerSecond) = pair.currentRateInfo();
         mineOneBlock();
         pair.addInterest();
         uint256 _utilization = getUtilization();
         uint256 newInterestRate;
         IRateCalculator _rateCalculator = IRateCalculator(pair.rateContract());
 
-        newInterestRate = interestCalculator(_rateCalculator.getConstants(), _utilization, _interestRatePerSecond, 15);
+        newInterestRate = interestCalculator(
+            _rateCalculator.getConstants(), _utilization, _interestRatePerSecond, 15
+        );
 
-        (, , , uint256 _finalInterestRatePerSecond) = pair.currentRateInfo();
+        (,,, uint256 _finalInterestRatePerSecond) = pair.currentRateInfo();
         assertEq(_finalInterestRatePerSecond, newInterestRate);
         console2.log("newInterestRate");
 
@@ -47,7 +49,7 @@ contract InterestPairTest is BasePairTest {
         mineOneBlock();
         pair.addInterest();
 
-        (, , , uint256 _rateAfterNoBorrows) = pair.currentRateInfo();
+        (,,, uint256 _rateAfterNoBorrows) = pair.currentRateInfo();
         assertEq(_rateAfterNoBorrows, DEFAULT_INT);
         emit log("_rateAfterNoBorrows == DEFAULT_INT");
     }
@@ -62,7 +64,7 @@ contract InterestPairTest is BasePairTest {
         uint256 _amountInPool = 15e23; // 1.5m
         uint256 _amountToBorrow = 16e20; // 1.5k
 
-        _feeTest(_amountInPool, _amountToBorrow, 10000);
+        _feeTest(_amountInPool, _amountToBorrow, 10_000);
     }
 
     function testFeesSmall() public {
@@ -78,11 +80,9 @@ contract InterestPairTest is BasePairTest {
         _feeTest(_amountInPool, _amountToBorrow, 1);
     }
 
-    function _feeTest(
-        uint256 _amountToLend,
-        uint256 _amountToBorrow,
-        uint256 _blocksToMine
-    ) public {
+    function _feeTest(uint256 _amountToLend, uint256 _amountToBorrow, uint256 _blocksToMine)
+        public
+    {
         faucetFunds(asset, _amountToLend);
 
         // Lend some shares
@@ -90,8 +90,9 @@ contract InterestPairTest is BasePairTest {
 
         {
             // borrow some tokens
-            uint256 _collateralAmount = (_amountToBorrow * pair.updateExchangeRate() * LTV_PRECISION) /
-                ((pair.maxLTV()) * EXCHANGE_PRECISION);
+            uint256 _collateralAmount = (
+                _amountToBorrow * pair.updateExchangeRate() * LTV_PRECISION
+            ) / ((pair.maxLTV()) * EXCHANGE_PRECISION);
             faucetFunds(collateral, _collateralAmount);
             borrowToken(_amountToBorrow, _collateralAmount, users[1]);
         }
@@ -109,16 +110,16 @@ contract InterestPairTest is BasePairTest {
         {
             // Set initial values
             (_initialAmountAsset, _initialSharesAsset) = pair.totalAsset();
-            (uint256 _initialAmountBorrow, ) = pair.totalBorrow();
+            (uint256 _initialAmountBorrow,) = pair.totalBorrow();
             uint256 _initialSharesProtocol = pair.balanceOf(address(pair));
             uint256 _initialFeeAmountProtocol = toAssetAmount(_initialSharesProtocol, true);
 
             // Apply interest
-            (_interestEarned, , , ) = pair.addInterest();
+            (_interestEarned,,,) = pair.addInterest();
 
             // Set final values
             (_finalAmountAsset, _finalSharesAsset) = pair.totalAsset();
-            (uint256 _finalAmountBorrow, ) = pair.totalBorrow();
+            (uint256 _finalAmountBorrow,) = pair.totalBorrow();
             uint256 _finalSharesProtocol = pair.balanceOf(address(pair));
             uint256 _finalFeeAmountProtocol = toAssetAmount(_finalSharesProtocol, true);
 
@@ -129,17 +130,20 @@ contract InterestPairTest is BasePairTest {
             _netAmountBorrow = _finalAmountBorrow - _initialAmountBorrow;
         }
 
-        (, uint256 _feeToProtocolRate, , ) = pair.currentRateInfo();
+        (, uint256 _feeToProtocolRate,,) = pair.currentRateInfo();
         uint256 _initFeeAmount = (_interestEarned * _feeToProtocolRate) / FEE_PRECISION;
 
-        uint256 _expectedProtocolShares = (_initialSharesAsset * _initFeeAmount) / (_finalAmountAsset - _initFeeAmount);
+        uint256 _expectedProtocolShares =
+            (_initialSharesAsset * _initFeeAmount) / (_finalAmountAsset - _initFeeAmount);
         assertEq(_interestEarned, _netAmountAsset);
         emit log("_interestEarned == _netAmountAsset");
         assertEq(_interestEarned, _netAmountBorrow);
         emit log("_interestEarned == _netAmountBorrow");
         assertApproxEqRel(_netAmountProtocol, _initFeeAmount, 1e18 / _initFeeAmount);
         emit log("_netAmountProtocol == _expectedProtocolFeesAmount");
-        assertApproxEqRel(_netSharesProtocol, _expectedProtocolShares, 1e18 / _expectedProtocolShares);
+        assertApproxEqRel(
+            _netSharesProtocol, _expectedProtocolShares, 1e18 / _expectedProtocolShares
+        );
         emit log("_netSharesProtocol == _expectedProtocolShares");
     }
 }

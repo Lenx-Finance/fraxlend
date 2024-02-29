@@ -26,7 +26,8 @@ contract LiquidatePairTest is BasePairTest {
         borrowToken(uint128(_amountToBorrow), _collateralAmount, users[2]);
         uint256 mxltv = pair.maxLTV();
         uint256 cleanLiquidationFee = pair.cleanLiquidationFee();
-        uint256 liquidation_price = ((((1e18 / _exchangeRate) * mxltv) / 1e5) * (1e5 + cleanLiquidationFee)) / 1e5;
+        uint256 liquidation_price =
+            ((((1e18 / _exchangeRate) * mxltv) / 1e5) * (1e5 + cleanLiquidationFee)) / 1e5;
         oracleDivide.setPrice(liquidation_price, 1, vm);
         mineBlocks(1);
         uint128 _shares = pair.userBorrowShares(users[2]).toUint128();

@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: ISC
 pragma solidity ^0.8.15;
+
 import "./BasePairTest.sol";
 
 contract WithdrawPairTest is BasePairTest {
@@ -26,12 +27,12 @@ contract WithdrawPairTest is BasePairTest {
         uint256 _lenderShares = lendTokenViaDeposit(_amountInPool, users[0]);
 
         // Borrow
-        (uint256 _borrowShares, ) = borrowToken(_amountToBorrow, _collateralAmount, users[2]);
+        (uint256 _borrowShares,) = borrowToken(_amountToBorrow, _collateralAmount, users[2]);
 
         // Simulate a lot of time passing
-        vm.warp(block.timestamp + 50000);
+        vm.warp(block.timestamp + 50_000);
         vm.roll(block.number + 1);
-        (uint256 _interestEarned, , , ) = pair.addInterest();
+        (uint256 _interestEarned,,,) = pair.addInterest();
 
         // Repay borrows
         repayToken(_borrowShares, users[2]);
@@ -43,7 +44,8 @@ contract WithdrawPairTest is BasePairTest {
         uint256 _finalBalance = asset.balanceOf(users[0]);
         uint256 _diffBalance = _finalBalance - _initialBalance;
         uint256 _sharesAsFees = toAssetAmount(pair.balanceOf(address(pair)), true);
-        uint256 _expectedRepayment = _amountInPool + _interestEarned - _sharesAsFees; // Account for Fees
+        uint256 _expectedRepayment = _amountInPool + _interestEarned - _sharesAsFees; // Account for
+            // Fees
         assertEq(_diffBalance, _expectedRepayment);
         emit log("_diffBalance == _expectedRepayment");
         vm.stopPrank();
@@ -72,12 +74,12 @@ contract WithdrawPairTest is BasePairTest {
         uint256 _lenderShares = lendTokenViaDeposit(_amountInPool, users[0]);
 
         // Borrow
-        (uint256 _borrowShares, ) = borrowToken(_amountToBorrow, _collateralAmount, users[2]);
+        (uint256 _borrowShares,) = borrowToken(_amountToBorrow, _collateralAmount, users[2]);
 
         // Simulate a lot of time passing
-        vm.warp(block.timestamp + 50000);
+        vm.warp(block.timestamp + 50_000);
         vm.roll(block.number + 1);
-        (uint256 _interestEarned, , , ) = pair.addInterest();
+        (uint256 _interestEarned,,,) = pair.addInterest();
 
         // Repay borrows
         repayToken(_borrowShares, users[2]);
@@ -91,7 +93,8 @@ contract WithdrawPairTest is BasePairTest {
         uint256 _finalBalance = asset.balanceOf(users[0]);
         uint256 _diffBalance = _finalBalance - _initialBalance;
         uint256 _sharesAsFees = toAssetAmount(pair.balanceOf(address(pair)), true);
-        uint256 _expectedRepayment = _amountInPool + _interestEarned - _sharesAsFees; // Account for Fees
+        uint256 _expectedRepayment = _amountInPool + _interestEarned - _sharesAsFees; // Account for
+            // Fees
         assertEq(_diffBalance, _expectedRepayment);
         emit log("_diffBalance == _expectedRepayment");
         vm.stopPrank();

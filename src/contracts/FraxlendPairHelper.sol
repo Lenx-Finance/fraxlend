@@ -63,31 +63,33 @@ contract FraxlendPairHelper {
         returns (ImmutablesAddressBool memory)
     {
         IFraxlendPair _fraxlendPair = IFraxlendPair(_fraxlendPairAddress);
-        return
-            ImmutablesAddressBool({
-                _assetContract: _fraxlendPair.asset(),
-                _collateralContract: _fraxlendPair.collateralContract(),
-                _oracleMultiply: _fraxlendPair.oracleMultiply(),
-                _oracleDivide: _fraxlendPair.oracleDivide(),
-                _rateContract: _fraxlendPair.rateContract(),
-                _DEPLOYER_CONTRACT: _fraxlendPair.DEPLOYER_ADDRESS(),
-                _COMPTROLLER_ADDRESS: _fraxlendPair.COMPTROLLER_ADDRESS(),
-                _FRAXLEND_WHITELIST: _fraxlendPair.FRAXLEND_WHITELIST_ADDRESS(),
-                _borrowerWhitelistActive: _fraxlendPair.borrowerWhitelistActive(),
-                _lenderWhitelistActive: _fraxlendPair.lenderWhitelistActive()
-            });
+        return ImmutablesAddressBool({
+            _assetContract: _fraxlendPair.asset(),
+            _collateralContract: _fraxlendPair.collateralContract(),
+            _oracleMultiply: _fraxlendPair.oracleMultiply(),
+            _oracleDivide: _fraxlendPair.oracleDivide(),
+            _rateContract: _fraxlendPair.rateContract(),
+            _DEPLOYER_CONTRACT: _fraxlendPair.DEPLOYER_ADDRESS(),
+            _COMPTROLLER_ADDRESS: _fraxlendPair.COMPTROLLER_ADDRESS(),
+            _FRAXLEND_WHITELIST: _fraxlendPair.FRAXLEND_WHITELIST_ADDRESS(),
+            _borrowerWhitelistActive: _fraxlendPair.borrowerWhitelistActive(),
+            _lenderWhitelistActive: _fraxlendPair.lenderWhitelistActive()
+        });
     }
 
-    function getImmutableUint256(address _fraxlendPairAddress) external view returns (ImmutablesUint256 memory) {
+    function getImmutableUint256(address _fraxlendPairAddress)
+        external
+        view
+        returns (ImmutablesUint256 memory)
+    {
         IFraxlendPair _fraxlendPair = IFraxlendPair(_fraxlendPairAddress);
-        return
-            ImmutablesUint256({
-                _oracleNormalization: _fraxlendPair.oracleNormalization(),
-                _maxLTV: _fraxlendPair.maxLTV(),
-                _liquidationFee: _fraxlendPair.cleanLiquidationFee(),
-                _maturityDate: _fraxlendPair.maturityDate(),
-                _penaltyRate: _fraxlendPair.penaltyRate()
-            });
+        return ImmutablesUint256({
+            _oracleNormalization: _fraxlendPair.oracleNormalization(),
+            _maxLTV: _fraxlendPair.maxLTV(),
+            _liquidationFee: _fraxlendPair.cleanLiquidationFee(),
+            _maturityDate: _fraxlendPair.maturityDate(),
+            _penaltyRate: _fraxlendPair.penaltyRate()
+        });
     }
 
     function getUserSnapshot(address _fraxlendPairAddress, address _address)
@@ -122,7 +124,11 @@ contract FraxlendPairHelper {
         _totalCollateral = _fraxlendPair.totalCollateral();
     }
 
-    function previewUpdateExchangeRate(address _fraxlendPairAddress) public view returns (uint256 _exchangeRate) {
+    function previewUpdateExchangeRate(address _fraxlendPairAddress)
+        public
+        view
+        returns (uint256 _exchangeRate)
+    {
         IFraxlendPair _fraxlendPair = IFraxlendPair(_fraxlendPairAddress);
         address _oracleMultiply = _fraxlendPair.oracleMultiply();
         address _oracleDivide = _fraxlendPair.oracleDivide();
@@ -130,25 +136,25 @@ contract FraxlendPairHelper {
 
         uint256 _price = uint256(1e36);
         if (_oracleMultiply != address(0)) {
-            (, int256 _answer, , , ) = AggregatorV3Interface(_oracleMultiply).latestRoundData();
-            if (_answer <= 0) {
-                revert OracleLTEZero(_oracleMultiply);
-            }
+            (, int256 _answer,,,) = AggregatorV3Interface(_oracleMultiply).latestRoundData();
+            if (_answer <= 0) revert OracleLTEZero(_oracleMultiply);
             _price = _price * uint256(_answer);
         }
 
         if (_oracleDivide != address(0)) {
-            (, int256 _answer, , , ) = AggregatorV3Interface(_oracleDivide).latestRoundData();
-            if (_answer <= 0) {
-                revert OracleLTEZero(_oracleDivide);
-            }
+            (, int256 _answer,,,) = AggregatorV3Interface(_oracleDivide).latestRoundData();
+            if (_answer <= 0) revert OracleLTEZero(_oracleDivide);
             _price = _price / uint256(_answer);
         }
 
         _exchangeRate = _price / _oracleNormalization;
     }
 
-    function _isPastMaturity(uint256 _maturityDate, uint256 _timestamp) internal pure returns (bool) {
+    function _isPastMaturity(uint256 _maturityDate, uint256 _timestamp)
+        internal
+        pure
+        returns (bool)
+    {
         return _maturityDate != 0 && _timestamp > _maturityDate;
     }
 
@@ -158,13 +164,13 @@ contract FraxlendPairHelper {
         uint256 _blockNumber
     ) public view returns (uint256 _interestEarned, uint256 _newRate) {
         IFraxlendPair _fraxlendPair = IFraxlendPair(_fraxlendPairAddress);
-        (, , uint256 _UTIL_PREC, , , uint64 _DEFAULT_INT, , ) = _fraxlendPair.getConstants();
+        (,, uint256 _UTIL_PREC,,, uint64 _DEFAULT_INT,,) = _fraxlendPair.getConstants();
 
         // Add interest only once per block
         CurrentRateInfo memory _currentRateInfo;
         {
-            (uint64 lastBlock, uint64 feeToProtocolRate, uint64 lastTimestamp, uint64 ratePerSec) = _fraxlendPair
-                .currentRateInfo();
+            (uint64 lastBlock, uint64 feeToProtocolRate, uint64 lastTimestamp, uint64 ratePerSec) =
+                _fraxlendPair.currentRateInfo();
             _currentRateInfo = CurrentRateInfo({
                 lastBlock: lastBlock,
                 feeToProtocolRate: feeToProtocolRate,
@@ -185,9 +191,7 @@ contract FraxlendPairHelper {
 
         // If there are no borrows, no interest accrues
         if (_totalBorrow.shares == 0 || _fraxlendPair.paused()) {
-            if (!_fraxlendPair.paused()) {
-                _currentRateInfo.ratePerSec = _DEFAULT_INT;
-            }
+            if (!_fraxlendPair.paused()) _currentRateInfo.ratePerSec = _DEFAULT_INT;
             // _currentRateInfo.lastTimestamp = uint32(_timestamp);
             // _currentRateInfo.lastBlock = uint16(_blockNumber);
         } else {
@@ -209,7 +213,9 @@ contract FraxlendPairHelper {
             }
 
             // Calculate interest accrued
-            _interestEarned = (_totalBorrow.amount * _newRate * (_timestamp - _currentRateInfo.lastTimestamp)) / 1e18;
+            _interestEarned = (
+                _totalBorrow.amount * _newRate * (_timestamp - _currentRateInfo.lastTimestamp)
+            ) / 1e18;
         }
     }
 
@@ -220,21 +226,18 @@ contract FraxlendPairHelper {
     )
         external
         view
-        returns (
-            uint256 _interestEarned,
-            uint256 _feesAmount,
-            uint256 _feesShare,
-            uint256 _newRate
-        )
+        returns (uint256 _interestEarned, uint256 _feesAmount, uint256 _feesShare, uint256 _newRate)
     {
-        (_interestEarned, _newRate) = previewRateInterest(_fraxlendPairAddress, _timestamp, _blockNumber);
+        (_interestEarned, _newRate) =
+            previewRateInterest(_fraxlendPairAddress, _timestamp, _blockNumber);
         IFraxlendPair _fraxlendPair = IFraxlendPair(_fraxlendPairAddress);
-        (, uint64 _feeToProtocolRate, , ) = _fraxlendPair.currentRateInfo();
-        (, , , uint256 _FEE_PRECISION, , , , ) = _fraxlendPair.getConstants();
+        (, uint64 _feeToProtocolRate,,) = _fraxlendPair.currentRateInfo();
+        (,,, uint256 _FEE_PRECISION,,,,) = _fraxlendPair.getConstants();
         (uint128 _totalAssetAmount, uint128 _totalAssetShares) = _fraxlendPair.totalAsset();
         if (_feeToProtocolRate > 0) {
             _feesAmount = (_interestEarned * _feeToProtocolRate) / _FEE_PRECISION;
-            _feesShare = (_feesAmount * _totalAssetShares) / (_totalAssetAmount + _interestEarned - _feesAmount);
+            _feesShare = (_feesAmount * _totalAssetShares)
+                / (_totalAssetAmount + _interestEarned - _feesAmount);
         }
     }
 
@@ -265,26 +268,39 @@ contract FraxlendPairHelper {
         {
             uint256 _exchangeRate = previewUpdateExchangeRate(_fraxlendPairAddress);
             _borrowerShares = _fraxlendPair.userBorrowShares(_borrower).toUint128();
-            (, uint256 _LIQ_PRECISION, , , uint256 _EXCHANGE_PRECISION, , , ) = _fraxlendPair.getConstants();
+            (, uint256 _LIQ_PRECISION,,, uint256 _EXCHANGE_PRECISION,,,) =
+                _fraxlendPair.getConstants();
             uint256 _userCollateralBalance = _fraxlendPair.userCollateralBalance(_borrower);
-            // Determine the liquidation amount in collateral units (i.e. how much debt is liquidator going to repay)
-            uint256 _liquidationAmountInCollateralUnits = ((_totalBorrow.toAmount(_borrowerShares, false) *
-                _exchangeRate) / _EXCHANGE_PRECISION);
+            // Determine the liquidation amount in collateral units (i.e. how much debt is
+            // liquidator going to repay)
+            uint256 _liquidationAmountInCollateralUnits = (
+                (_totalBorrow.toAmount(_borrowerShares, false) * _exchangeRate)
+                    / _EXCHANGE_PRECISION
+            );
 
-            // We first optimistically calculate the amount of collateral to give the liquidator based on the higher clean liquidation fee
+            // We first optimistically calculate the amount of collateral to give the liquidator
+            // based on the higher clean liquidation fee
             // This fee only applies if the liquidator does a full liquidation
-            uint256 _optimisticCollateralForLiquidator = (_liquidationAmountInCollateralUnits *
-                (_LIQ_PRECISION + _fraxlendPair.cleanLiquidationFee())) / _LIQ_PRECISION;
+            uint256 _optimisticCollateralForLiquidator = (
+                _liquidationAmountInCollateralUnits
+                    * (_LIQ_PRECISION + _fraxlendPair.cleanLiquidationFee())
+            ) / _LIQ_PRECISION;
 
-            // Because interest accrues every block, _liquidationAmountInCollateralUnits (line 913) is an ever increasing value
-            // This means that leftoverCollateral can occasionally go negative by a few hundred wei (cleanLiqFee premium covers this for liquidator)
-            _leftoverCollateral = (_userCollateralBalance.toInt256() - _optimisticCollateralForLiquidator.toInt256());
-            // If cleanLiquidation fee results in no leftover collateral, give liquidator all the collateral
+            // Because interest accrues every block, _liquidationAmountInCollateralUnits (line 913)
+            // is an ever increasing value
+            // This means that leftoverCollateral can occasionally go negative by a few hundred wei
+            // (cleanLiqFee premium covers this for liquidator)
+            _leftoverCollateral =
+                (_userCollateralBalance.toInt256() - _optimisticCollateralForLiquidator.toInt256());
+            // If cleanLiquidation fee results in no leftover collateral, give liquidator all the
+            // collateral
             // This will only be true when there liquidator is cleaning out the position
             _collateralForLiquidator = _leftoverCollateral <= 0
                 ? _userCollateralBalance
-                : (_liquidationAmountInCollateralUnits * (_LIQ_PRECISION + _fraxlendPair.dirtyLiquidationFee())) /
-                    _LIQ_PRECISION;
+                : (
+                    _liquidationAmountInCollateralUnits
+                        * (_LIQ_PRECISION + _fraxlendPair.dirtyLiquidationFee())
+                ) / _LIQ_PRECISION;
         }
         _amountLiquidatorToRepay = (_totalBorrow.toAmount(_sharesToLiquidate, true)).toUint128();
 
