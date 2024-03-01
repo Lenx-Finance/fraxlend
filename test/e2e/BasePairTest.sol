@@ -155,12 +155,19 @@ contract BasePairTest is FraxlendPairConstants, Scenarios, Test {
         fraxlendPairHelper = new FraxlendPairHelper();
         // Set code for Whitelist
         fraxlendWhitelist = new FraxlendWhitelist();
-        deployer = new FraxlendPairDeployer(
+
+        fraxlendWhitelist.initialize(address(this));
+
+        deployer = new FraxlendPairDeployer();
+
+        deployer.initialize(
+            address(this),
             CIRCUIT_BREAKER_ADDRESS,
             COMPTROLLER_ADDRESS,
             TIME_LOCK_ADDRESS,
             address(fraxlendWhitelist)
         );
+
         deployer.setCreationCode(type(FraxlendPair).creationCode);
         variableRateContract = new VariableInterestRate();
         linearRateContract = new LinearInterestRate();

@@ -6,6 +6,7 @@
   evm_version = "paris"
   solc_version = "0.8.18"
   ffi = true
+  fs_permissions = [{ access = "read-write", path = "./"}]
 
 [profile.ci]
   fuzz = { runs = 5000 }

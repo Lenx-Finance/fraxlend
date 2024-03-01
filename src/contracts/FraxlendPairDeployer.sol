@@ -25,6 +25,7 @@ pragma solidity ^0.8.16;
 
 // ====================================================================
 
+import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
@@ -41,7 +42,7 @@ import "./libraries/SafeERC20.sol";
 /// @author Drake Evans (Frax Finance) https://github.com/drakeevans
 /// @notice Deploys and initializes new FraxlendPairs
 /// @dev Uses create2 to deploy the pairs, logs an event, and records a list of all deployed pairs
-contract FraxlendPairDeployer is Ownable {
+contract FraxlendPairDeployer is Ownable, Initializable {
     using SafeERC20 for IERC20;
     using Strings for uint256;
 
@@ -60,7 +61,7 @@ contract FraxlendPairDeployer is Ownable {
     address public TIME_LOCK_ADDRESS;
 
     // Dependencies
-    address public immutable FRAXLEND_WHITELIST_ADDRESS;
+    address public FRAXLEND_WHITELIST_ADDRESS;
 
     // Default swappers
     address[] public defaultSwappers;
@@ -101,12 +102,14 @@ contract FraxlendPairDeployer is Ownable {
     /// @notice List of the names of all deployed Pairs
     string[] public deployedPairsArray;
 
-    constructor(
+    function initialize(
+        address _owner,
         address _circuitBreaker,
         address _comptroller,
         address _timelock,
         address _fraxlendWhitelist
-    ) Ownable() {
+    ) external virtual initializer {
+        _transferOwnership(_owner);
         CIRCUIT_BREAKER_ADDRESS = _circuitBreaker;
         COMPTROLLER_ADDRESS = _comptroller;
         TIME_LOCK_ADDRESS = _timelock;

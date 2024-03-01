@@ -25,9 +25,10 @@ pragma solidity ^0.8.16;
 
 // ====================================================================
 
+import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract FraxlendWhitelist is Ownable {
+contract FraxlendWhitelist is Ownable, Initializable {
     // Oracle Whitelist Storage
     mapping(address => bool) public oracleContractWhitelist;
 
@@ -37,7 +38,9 @@ contract FraxlendWhitelist is Ownable {
     // Fraxlend Deployer Whitelist Storage
     mapping(address => bool) public fraxlendDeployerWhitelist;
 
-    constructor() Ownable() { }
+    function initialize(address _owner) external virtual initializer {
+        _transferOwnership(_owner);
+    }
 
     /// @notice The ```SetOracleWhitelist``` event fires whenever a status is set for a given
     /// address
