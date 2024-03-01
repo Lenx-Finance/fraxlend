@@ -358,7 +358,7 @@ contract FraxlendPairDeployer is Ownable, Initializable {
     /// address _oracleDivide, uint256 _oracleNormalization, address _rateContract, bytes memory
     /// _rateInitData)
     /// @return _pairAddress The address to which the Pair was deployed
-    function deploy(bytes memory _configData) external returns (address _pairAddress) {
+    function deploy(bytes memory _configData) external onlyOwner returns (address _pairAddress) {
         (address _asset, address _collateral,,,, address _rateContract,) =
             abi.decode(_configData, (address, address, address, address, uint256, address, bytes));
         string memory _name = string(
