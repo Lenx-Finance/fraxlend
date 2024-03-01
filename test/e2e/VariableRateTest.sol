@@ -34,7 +34,8 @@
 //             uint64 MAX_INT,
 //             uint256 INT_HALF_LIFE
 //         ) = abi.decode(
-//             variableRateContract.getConstants(), (uint32, uint32, uint32, uint64, uint64, uint256)
+//             variableRateContract.getConstants(), (uint32, uint32, uint32, uint64, uint64,
+// uint256)
 //         );
 //         _currentRatePerSec = uint64((uint256(_currentRatePerSec) + MIN_INT) % MAX_INT);
 //         _testVariableRate(_currentRatePerSec, _deltaTime, _utilization);
@@ -61,7 +62,8 @@
 //         bytes memory _ret = vm.ffi(_inputs);
 //         uint256 _base = 5_000_001;
 //         assertApproxEqRel(_base, 5_000_000, 1e18 / 5_000_000);
-//         assertApproxEqRel(abi.decode(_ret, (uint256)), uint256(_newRate), 1e18 / uint256(_newRate));
+//         assertApproxEqRel(abi.decode(_ret, (uint256)), uint256(_newRate), 1e18 /
+// uint256(_newRate));
 //     }
 
 //     function testFailRelativeAssertionCheck() public {

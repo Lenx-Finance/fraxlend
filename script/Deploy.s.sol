@@ -1,15 +1,15 @@
 // SPDX-License-Identifier: The Unlicense
 pragma solidity ^0.8.0;
 
-import {Script, console2} from "forge-std/Script.sol";
+import { Script, console2 } from "forge-std/Script.sol";
 
-import {FraxlendPair} from "../src/contracts/FraxlendPair.sol";
-import {FraxlendPairHelper} from "../src/contracts/FraxlendPairHelper.sol";
-import {FraxlendWhitelist} from "../src/contracts/FraxlendWhitelist.sol";
-import {FraxlendPairDeployer} from "../src/contracts/FraxlendPairDeployer.sol";
+import { FraxlendPair } from "../src/contracts/FraxlendPair.sol";
+import { FraxlendPairHelper } from "../src/contracts/FraxlendPairHelper.sol";
+import { FraxlendWhitelist } from "../src/contracts/FraxlendWhitelist.sol";
+import { FraxlendPairDeployer } from "../src/contracts/FraxlendPairDeployer.sol";
 
-import {VariableInterestRate} from "./../src/contracts/VariableInterestRate.sol";
-import {LinearInterestRate} from "./../src/contracts/LinearInterestRate.sol";
+import { VariableInterestRate } from "./../src/contracts/VariableInterestRate.sol";
+import { LinearInterestRate } from "./../src/contracts/LinearInterestRate.sol";
 
 contract DeployFraxlend is Script {
     FraxlendPairHelper helper;
