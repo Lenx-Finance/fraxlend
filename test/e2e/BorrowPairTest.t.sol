@@ -41,9 +41,8 @@ contract BorrowPairTest is BasePairTest {
         _maxLTV = _maxLTV % (1e8 + 1);
         _maxLTV = _maxLTV == 0 ? _maxLTV + 1 : _maxLTV;
 
-        startHoax(COMPTROLLER_ADDRESS);
         deployNonDynamicExternalContracts();
-        vm.stopPrank();
+
         (uint256 MIN_INT, uint256 MAX_INT, uint256 MAX_VERTEX_UTIL, uint256 UTIL_PREC) =
             abi.decode(linearRateContract.getConstants(), (uint256, uint256, uint256, uint256));
         _fuzzySetupBorrowToken(
@@ -77,9 +76,6 @@ contract BorrowPairTest is BasePairTest {
         uint256 _oracleNormalization = 1e18;
         (address _rateContract, bytes memory _rateInitData) =
             fuzzyRateCalculator(2, _minInterest, _vertexInterest, _maxInterest, _vertexUtilization);
-        startHoax(COMPTROLLER_ADDRESS);
-        setWhitelistTrue();
-        vm.stopPrank();
 
         address[] memory _borrowerWhitelist = _maxLTV >= LTV_PRECISION ? users : new address[](0);
         address[] memory _lenderWhitelist = _maxLTV >= LTV_PRECISION ? users : new address[](0);
@@ -120,14 +116,12 @@ contract BorrowPairTest is BasePairTest {
     function testCannotBorrowTokenIfNotOnBorowWhitelist() public {
         // Setup
         setExternalContracts();
-        startHoax(COMPTROLLER_ADDRESS);
-        setWhitelistTrue();
-        vm.stopPrank();
 
         address[] memory approvedBorrowers = new address[](1);
         address[] memory approvedLenders = new address[](1);
         approvedBorrowers[0] = users[3];
         approvedLenders[0] = users[0];
+        
         deployFraxlendCustom(
             1e10,
             address(variableRateContract),

@@ -127,7 +127,6 @@ contract FraxlendPair is IERC20Metadata, FraxlendPairCore {
     /// @return _rateContract Address of rate contract
     /// @return _DEPLOYER_CONTRACT Address of deployer contract
     /// @return _COMPTROLLER_ADDRESS Address of comptroller
-    /// @return _FRAXLEND_WHITELIST Address of whitelist
     /// @return _borrowerWhitelistActive Boolean is borrower whitelist active
     /// @return _lenderWhitelistActive Boolean is lender whitelist active
     function getImmutableAddressBool()
@@ -141,7 +140,6 @@ contract FraxlendPair is IERC20Metadata, FraxlendPairCore {
             address _rateContract,
             address _DEPLOYER_CONTRACT,
             address _COMPTROLLER_ADDRESS,
-            address _FRAXLEND_WHITELIST,
             bool _borrowerWhitelistActive,
             bool _lenderWhitelistActive
         )
@@ -153,7 +151,6 @@ contract FraxlendPair is IERC20Metadata, FraxlendPairCore {
         _rateContract = address(rateContract);
         _DEPLOYER_CONTRACT = DEPLOYER_ADDRESS;
         _COMPTROLLER_ADDRESS = COMPTROLLER_ADDRESS;
-        _FRAXLEND_WHITELIST = FRAXLEND_WHITELIST_ADDRESS;
         _borrowerWhitelistActive = borrowerWhitelistActive;
         _lenderWhitelistActive = lenderWhitelistActive;
     }

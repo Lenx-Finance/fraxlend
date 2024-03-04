@@ -54,14 +54,13 @@ contract LendPairTest is BasePairTest {
     function testCannotlendTokenViaDepositIfNotOnWhitelist() public {
         // Setup
         setExternalContracts();
-        startHoax(COMPTROLLER_ADDRESS);
-        setWhitelistTrue();
-        vm.stopPrank();
 
         address[] memory approvedBorrowers = new address[](1);
-        address[] memory approvedLenders = new address[](1);
         approvedBorrowers[0] = users[3];
+        
+        address[] memory approvedLenders = new address[](1);
         approvedLenders[0] = users[1];
+
         deployFraxlendCustom(
             1e10,
             address(variableRateContract),

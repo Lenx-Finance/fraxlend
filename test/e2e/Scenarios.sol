@@ -9,7 +9,6 @@ import "../../src/contracts/FraxlendPairConstants.sol";
 import "../../src/contracts/FraxlendPairDeployer.sol";
 import "../../src/contracts/VariableInterestRate.sol";
 import "../../src/contracts/LinearInterestRate.sol";
-import "../../src/contracts/FraxlendWhitelist.sol";
 
 contract Scenarios {
     struct Scenario {

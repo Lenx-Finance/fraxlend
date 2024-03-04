@@ -8,8 +8,6 @@ interface IFraxlendPair {
 
     function DEPLOYER_ADDRESS() external view returns (address);
 
-    function FRAXLEND_WHITELIST_ADDRESS() external view returns (address);
-
     function TIME_LOCK_ADDRESS() external view returns (address);
 
     function addCollateral(uint256 _collateralAmount, address _borrower) external;

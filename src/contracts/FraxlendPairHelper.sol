@@ -39,7 +39,6 @@ contract FraxlendPairHelper {
         address _rateContract;
         address _DEPLOYER_CONTRACT;
         address _COMPTROLLER_ADDRESS;
-        address _FRAXLEND_WHITELIST;
     }
 
     struct ImmutablesUint256 {
@@ -71,7 +70,6 @@ contract FraxlendPairHelper {
             _rateContract: _fraxlendPair.rateContract(),
             _DEPLOYER_CONTRACT: _fraxlendPair.DEPLOYER_ADDRESS(),
             _COMPTROLLER_ADDRESS: _fraxlendPair.COMPTROLLER_ADDRESS(),
-            _FRAXLEND_WHITELIST: _fraxlendPair.FRAXLEND_WHITELIST_ADDRESS(),
             _borrowerWhitelistActive: _fraxlendPair.borrowerWhitelistActive(),
             _lenderWhitelistActive: _fraxlendPair.lenderWhitelistActive()
         });

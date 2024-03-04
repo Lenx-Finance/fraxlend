@@ -11,7 +11,6 @@ import "../../src/contracts/FraxlendPairDeployer.sol";
 import "../../src/contracts/FraxlendPairHelper.sol";
 import "../../src/contracts/VariableInterestRate.sol";
 import "../../src/contracts/LinearInterestRate.sol";
-import "../../src/contracts/FraxlendWhitelist.sol";
 import "../../src/contracts/FraxlendPair.sol";
 import "./Scenarios.sol";
 
@@ -54,7 +53,6 @@ contract BasePairTest is FraxlendPairConstants, Scenarios, Test {
     IERC20 public collateral;
     VariableInterestRate public variableRateContract;
     LinearInterestRate public linearRateContract;
-    FraxlendWhitelist public fraxlendWhitelist;
 
     AggregatorV3Interface public oracleDivide;
     AggregatorV3Interface public oracleMultiply;
@@ -153,22 +151,15 @@ contract BasePairTest is FraxlendPairConstants, Scenarios, Test {
     /// @dev
     function deployNonDynamicExternalContracts() public {
         fraxlendPairHelper = new FraxlendPairHelper();
-        // Set code for Whitelist
-        fraxlendWhitelist = new FraxlendWhitelist();
-
-        fraxlendWhitelist.initialize(address(this));
 
         deployer = new FraxlendPairDeployer();
 
         deployer.initialize(
-            address(this),
-            CIRCUIT_BREAKER_ADDRESS,
-            COMPTROLLER_ADDRESS,
-            TIME_LOCK_ADDRESS,
-            address(fraxlendWhitelist)
+            address(this), CIRCUIT_BREAKER_ADDRESS, COMPTROLLER_ADDRESS, TIME_LOCK_ADDRESS
         );
 
         deployer.setCreationCode(type(FraxlendPair).creationCode);
+
         variableRateContract = new VariableInterestRate();
         linearRateContract = new LinearInterestRate();
         console.log(
@@ -201,44 +192,13 @@ contract BasePairTest is FraxlendPairConstants, Scenarios, Test {
     }
 
     function setExternalContracts() public {
-        startHoax(COMPTROLLER_ADDRESS);
+        vm.startPrank(address(this));
         deployNonDynamicExternalContracts();
         vm.stopPrank();
         // Deploy contracts
         collateral = IERC20(WETH_ERC20);
         asset = IERC20(FRAX_ERC20);
         oracleDivide = AggregatorV3Interface(CHAINLINK_ETH_USD);
-    }
-
-    function setWhitelistTrue() public {
-        // Rate contracts to whitelist
-        address[] memory _rateAddresses = new address[](2);
-        _rateAddresses[0] = address(variableRateContract);
-        _rateAddresses[1] = address(linearRateContract);
-        fraxlendWhitelist.setRateContractWhitelist(_rateAddresses, true);
-
-        // Oracle Addresses to whitelist
-        address[] memory _oracleAddresses = new address[](8);
-        _oracleAddresses[0] = address(oracleMultiply);
-        _oracleAddresses[1] = address(oracleDivide);
-        _oracleAddresses[2] = CHAINLINK_ETH_USD;
-        _oracleAddresses[3] = CHAINLINK_FXS_USD;
-        _oracleAddresses[4] = CHAINLINK_FIL_ETH;
-        _oracleAddresses[5] = CHAINLINK_MKR_ETH;
-        _oracleAddresses[6] = CHAINLINK_MKR_USD;
-        _oracleAddresses[7] = CHAINLINK_FIL_USD;
-        fraxlendWhitelist.setOracleContractWhitelist(_oracleAddresses, true);
-
-        // Ensure the whitelist is working
-        for (uint256 i = 0; i < _oracleAddresses.length; i++) {
-            bool _approval = fraxlendWhitelist.oracleContractWhitelist(_oracleAddresses[i]);
-            assertTrue(_approval);
-        }
-
-        // Deployers to whitelist
-        address[] memory _deployerAddresses = new address[](1);
-        _deployerAddresses[0] = COMPTROLLER_ADDRESS;
-        fraxlendWhitelist.setFraxlendDeployerWhitelist(_deployerAddresses, true);
     }
 
     /// @notice The ```deployFraxlendPublic``` function helps deploy Fraxlend public pairs with
@@ -248,6 +208,7 @@ contract BasePairTest is FraxlendPairConstants, Scenarios, Test {
         address _rateContract,
         bytes memory _initRateData
     ) public {
+        vm.prank(address(this));
         address _pairAddress = deployer.deploy(
             abi.encode(
                 address(asset),
@@ -297,7 +258,6 @@ contract BasePairTest is FraxlendPairConstants, Scenarios, Test {
         address[] memory _approvedBorrowers,
         address[] memory _approvedLenders
     ) public {
-        startHoax(COMPTROLLER_ADDRESS);
         {
             pair = FraxlendPair(
                 deployer.deployCustom(
@@ -312,7 +272,6 @@ contract BasePairTest is FraxlendPairConstants, Scenarios, Test {
                 )
             );
         }
-        vm.stopPrank();
 
         startHoax(COMPTROLLER_ADDRESS);
         pair.setSwapper(UNIV2_ROUTER, true);
@@ -327,9 +286,6 @@ contract BasePairTest is FraxlendPairConstants, Scenarios, Test {
     /// testing
     function defaultSetUp() public virtual {
         setExternalContracts();
-        startHoax(COMPTROLLER_ADDRESS);
-        setWhitelistTrue();
-        vm.stopPrank();
         // Set initial oracle prices
         deployFraxlendPublic(1e10, address(variableRateContract), abi.encode());
     }

@@ -56,9 +56,6 @@ contract InterestPairTest is BasePairTest {
 
     function testFeesLarge() public {
         setExternalContracts();
-        startHoax(COMPTROLLER_ADDRESS);
-        setWhitelistTrue();
-        vm.stopPrank();
 
         deployFraxlendPublic(1, address(linearRateContract), defaultRateInitForLinear());
         uint256 _amountInPool = 15e23; // 1.5m
@@ -69,9 +66,6 @@ contract InterestPairTest is BasePairTest {
 
     function testFeesSmall() public {
         setExternalContracts();
-        startHoax(COMPTROLLER_ADDRESS);
-        setWhitelistTrue();
-        vm.stopPrank();
 
         deployFraxlendPublic(1, address(linearRateContract), defaultRateInitForLinear());
         uint256 _amountInPool = 15e23; // 1.5m

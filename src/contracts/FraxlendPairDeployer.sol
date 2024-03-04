@@ -32,7 +32,6 @@ import "@openzeppelin/contracts/utils/Strings.sol";
 import "@rari-capital/solmate/src/utils/SSTORE2.sol";
 import "solidity-bytes-utils/contracts/BytesLib.sol";
 import "./interfaces/IRateCalculator.sol";
-import "./interfaces/IFraxlendWhitelist.sol";
 import "./interfaces/IFraxlendPair.sol";
 import "./libraries/SafeERC20.sol";
 
@@ -59,9 +58,6 @@ contract FraxlendPairDeployer is Ownable, Initializable {
     address public CIRCUIT_BREAKER_ADDRESS;
     address public COMPTROLLER_ADDRESS;
     address public TIME_LOCK_ADDRESS;
-
-    // Dependencies
-    address public FRAXLEND_WHITELIST_ADDRESS;
 
     // Default swappers
     address[] public defaultSwappers;
@@ -106,14 +102,12 @@ contract FraxlendPairDeployer is Ownable, Initializable {
         address _owner,
         address _circuitBreaker,
         address _comptroller,
-        address _timelock,
-        address _fraxlendWhitelist
+        address _timelock
     ) external virtual initializer {
         _transferOwnership(_owner);
         CIRCUIT_BREAKER_ADDRESS = _circuitBreaker;
         COMPTROLLER_ADDRESS = _comptroller;
         TIME_LOCK_ADDRESS = _timelock;
-        FRAXLEND_WHITELIST_ADDRESS = _fraxlendWhitelist;
     }
 
     // ============================================================================================
@@ -377,12 +371,7 @@ contract FraxlendPairDeployer is Ownable, Initializable {
         _pairAddress = _deployFirst(
             keccak256(abi.encodePacked("public")),
             _configData,
-            abi.encode(
-                CIRCUIT_BREAKER_ADDRESS,
-                COMPTROLLER_ADDRESS,
-                TIME_LOCK_ADDRESS,
-                FRAXLEND_WHITELIST_ADDRESS
-            ),
+            abi.encode(CIRCUIT_BREAKER_ADDRESS, COMPTROLLER_ADDRESS, TIME_LOCK_ADDRESS),
             DEFAULT_MAX_LTV,
             DEFAULT_LIQ_FEE,
             0,
@@ -420,12 +409,8 @@ contract FraxlendPairDeployer is Ownable, Initializable {
         uint256 _penaltyRate,
         address[] memory _approvedBorrowers,
         address[] memory _approvedLenders
-    ) external returns (address _pairAddress) {
+    ) external onlyOwner returns (address _pairAddress) {
         require(_maxLTV <= GLOBAL_MAX_LTV, "FraxlendPairDeployer: _maxLTV is too large");
-        require(
-            IFraxlendWhitelist(FRAXLEND_WHITELIST_ADDRESS).fraxlendDeployerWhitelist(msg.sender),
-            "FraxlendPairDeployer: Only whitelisted addresses"
-        );
         require(
             keccak256(abi.encodePacked(_name)) != keccak256(abi.encodePacked("public")),
             "FraxlendPairDeployer: _name parameter cannot be 'public'"
@@ -434,12 +419,7 @@ contract FraxlendPairDeployer is Ownable, Initializable {
         _pairAddress = _deployFirst(
             keccak256(abi.encodePacked(_name)),
             _configData,
-            abi.encode(
-                CIRCUIT_BREAKER_ADDRESS,
-                COMPTROLLER_ADDRESS,
-                TIME_LOCK_ADDRESS,
-                FRAXLEND_WHITELIST_ADDRESS
-            ),
+            abi.encode(CIRCUIT_BREAKER_ADDRESS, COMPTROLLER_ADDRESS, TIME_LOCK_ADDRESS),
             _maxLTV,
             _liquidationFee,
             _maturityDate,

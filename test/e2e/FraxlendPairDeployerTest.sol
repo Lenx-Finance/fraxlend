@@ -10,9 +10,6 @@ contract FraxlendPairDeployerTest is BasePairTest {
     function testCannotDeployTwicePublic() public {
         // Setup contracts
         setExternalContracts();
-        startHoax(COMPTROLLER_ADDRESS);
-        setWhitelistTrue();
-        vm.stopPrank();
 
         // Set initial oracle prices
         bytes memory _rateInitData = defaultRateInitForLinear();
@@ -47,9 +44,6 @@ contract FraxlendPairDeployerTest is BasePairTest {
     function testCanDeployTwicePublic() public {
         // Setup contracts
         setExternalContracts();
-        startHoax(COMPTROLLER_ADDRESS);
-        setWhitelistTrue();
-        vm.stopPrank();
 
         // Test Starts
         // Define some custom init data
@@ -77,9 +71,6 @@ contract FraxlendPairDeployerTest is BasePairTest {
     function testCanDeployTwicePublicFRAXFXS() public {
         // Setup contracts
         setExternalContracts();
-        startHoax(COMPTROLLER_ADDRESS);
-        setWhitelistTrue();
-        vm.stopPrank();
 
         // Test Starts
         deployer.deploy(
@@ -110,9 +101,6 @@ contract FraxlendPairDeployerTest is BasePairTest {
     function testCanDeployTwiceCustom() public {
         // Setup contracts
         setExternalContracts();
-        startHoax(COMPTROLLER_ADDRESS);
-        setWhitelistTrue();
-        vm.stopPrank();
 
         // Test Starts
         // different Init Data
@@ -123,10 +111,7 @@ contract FraxlendPairDeployerTest is BasePairTest {
         uint256 _vertexInterest = _minInterest * 60; // 10%
         uint256 _maxInterest = _minInterest * 400; // 100%
         uint256 _vertexUtilization = (80 * UTIL_PREC) / 100;
-        startHoax(COMPTROLLER_ADDRESS);
-        assertTrue(fraxlendWhitelist.oracleContractWhitelist(address(oracleMultiply)));
-        assertTrue(fraxlendWhitelist.oracleContractWhitelist(address(oracleDivide)));
-        assertTrue(fraxlendWhitelist.rateContractWhitelist(address(linearRateContract)));
+
         deployer.deployCustom(
             "My cool contract",
             _encodeConfigData(
@@ -141,7 +126,9 @@ contract FraxlendPairDeployerTest is BasePairTest {
             new address[](0),
             new address[](0)
         );
+
         mineOneBlock();
+
         deployer.deployCustom(
             "me second",
             _encodeConfigData(1e10, address(variableRateContract), defaultRateInitForLinear()),
@@ -152,102 +139,5 @@ contract FraxlendPairDeployerTest is BasePairTest {
             new address[](0),
             new address[](0)
         );
-        vm.stopPrank();
-    }
-
-    function testCannotDeployCustom() public {
-        // Setup contracts
-        defaultSetUp();
-
-        // Test Starts
-        vm.expectRevert("FraxlendPairDeployer: Only whitelisted addresses");
-        deployer.deployCustom(
-            "testname",
-            abi.encode(
-                address(asset),
-                address(collateral),
-                address(oracleMultiply),
-                address(oracleDivide),
-                1e10,
-                address(variableRateContract),
-                abi.encode()
-            ),
-            DEFAULT_MAX_LTV,
-            DEFAULT_LIQ_FEE,
-            0,
-            0,
-            new address[](0),
-            new address[](0)
-        );
-    }
-
-    function testCannotDeployOracleWhitelistFalse() public {
-        // Setup contracts
-        setExternalContracts();
-
-        // Set Oracle True then False
-        startHoax(COMPTROLLER_ADDRESS);
-        setWhitelistTrue();
-        address[] memory _contracts = new address[](2);
-        _contracts[0] = address(oracleMultiply);
-        _contracts[1] = address(oracleDivide);
-        fraxlendWhitelist.setOracleContractWhitelist(_contracts, false);
-
-        // Test Starts
-        vm.expectRevert("FraxlendPairDeployer: create2 failed");
-        deployer.deployCustom(
-            "testname",
-            abi.encode(
-                address(asset),
-                address(collateral),
-                address(oracleMultiply),
-                address(oracleDivide),
-                1e10,
-                address(variableRateContract),
-                abi.encode()
-            ),
-            DEFAULT_MAX_LTV,
-            DEFAULT_LIQ_FEE,
-            0,
-            0,
-            new address[](0),
-            new address[](0)
-        );
-        fraxlendWhitelist = new FraxlendWhitelist();
-        vm.stopPrank();
-    }
-
-    function testCannotDeployOracleWhitelistDNE() public {
-        // Setup contracts
-        setExternalContracts();
-        // Set initial oracle prices
-
-        // Test Starts
-        startHoax(COMPTROLLER_ADDRESS);
-        // Deployers to whitelist
-        address[] memory _deployerAddresses = new address[](1);
-        _deployerAddresses[0] = COMPTROLLER_ADDRESS;
-        fraxlendWhitelist.setFraxlendDeployerWhitelist(_deployerAddresses, true);
-        vm.expectRevert("FraxlendPairDeployer: create2 failed");
-        deployer.deployCustom(
-            "testname",
-            abi.encode(
-                address(asset),
-                address(collateral),
-                address(oracleMultiply),
-                address(oracleDivide),
-                1e10,
-                address(variableRateContract),
-                abi.encode()
-            ),
-            DEFAULT_MAX_LTV,
-            DEFAULT_LIQ_FEE,
-            block.timestamp + 100 days,
-            1000 * DEFAULT_INT,
-            new address[](0),
-            new address[](0)
-        );
-        fraxlendWhitelist = new FraxlendWhitelist();
-        vm.stopPrank();
     }
 }

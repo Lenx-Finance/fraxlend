@@ -35,7 +35,6 @@ import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 import "./FraxlendPairConstants.sol";
 import "./libraries/VaultAccount.sol";
 import "./libraries/SafeERC20.sol";
-import "./interfaces/IFraxlendWhitelist.sol";
 import "./interfaces/IRateCalculator.sol";
 import "./interfaces/ISwapper.sol";
 
@@ -90,9 +89,6 @@ abstract contract FraxlendPairCore is
     address public immutable CIRCUIT_BREAKER_ADDRESS;
     address public immutable COMPTROLLER_ADDRESS;
     address public TIME_LOCK_ADDRESS;
-
-    // Dependencies
-    address public immutable FRAXLEND_WHITELIST_ADDRESS;
 
     // ERC20 token name, accessible via name()
     string internal nameOfContract;
@@ -177,19 +173,14 @@ abstract contract FraxlendPairCore is
     ) {
         // Handle Immutables Configuration
         {
-            (
-                address _circuitBreaker,
-                address _comptrollerAddress,
-                address _timeLockAddress,
-                address _fraxlendWhitelistAddress
-            ) = abi.decode(_immutables, (address, address, address, address));
+            (address _circuitBreaker, address _comptrollerAddress, address _timeLockAddress) =
+                abi.decode(_immutables, (address, address, address));
 
             // Deployer contract
             DEPLOYER_ADDRESS = msg.sender;
             CIRCUIT_BREAKER_ADDRESS = _circuitBreaker;
             COMPTROLLER_ADDRESS = _comptrollerAddress;
             TIME_LOCK_ADDRESS = _timeLockAddress;
-            FRAXLEND_WHITELIST_ADDRESS = _fraxlendWhitelistAddress;
         }
 
         {
@@ -218,28 +209,10 @@ abstract contract FraxlendPairCore is
 
             // Oracle Settings
             {
-                IFraxlendWhitelist _fraxlendWhitelist =
-                    IFraxlendWhitelist(FRAXLEND_WHITELIST_ADDRESS);
-                // Check that oracles are on the whitelist
-                if (
-                    _oracleMultiply != address(0)
-                        && !_fraxlendWhitelist.oracleContractWhitelist(_oracleMultiply)
-                ) revert NotOnWhitelist(_oracleMultiply);
-
-                if (
-                    _oracleDivide != address(0)
-                        && !_fraxlendWhitelist.oracleContractWhitelist(_oracleDivide)
-                ) revert NotOnWhitelist(_oracleDivide);
-
                 // Write oracleData to storage
                 oracleMultiply = _oracleMultiply;
                 oracleDivide = _oracleDivide;
                 oracleNormalization = _oracleNormalization;
-
-                // Rate Settings
-                if (!_fraxlendWhitelist.rateContractWhitelist(_rateContract)) {
-                    revert NotOnWhitelist(_rateContract);
-                }
             }
 
             rateContract = IRateCalculator(_rateContract);
