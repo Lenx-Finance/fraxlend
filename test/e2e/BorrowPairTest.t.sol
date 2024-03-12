@@ -121,7 +121,7 @@ contract BorrowPairTest is BasePairTest {
         address[] memory approvedLenders = new address[](1);
         approvedBorrowers[0] = users[3];
         approvedLenders[0] = users[0];
-        
+
         deployFraxlendCustom(
             1e10,
             address(variableRateContract),

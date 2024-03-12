@@ -19,7 +19,7 @@ contract LiquidatePairTest is BasePairTest {
             UniswapV2Library.getReserves(_factory, address(asset), address(collateral));
 
         oracleDivide = AggregatorV3Interface(CHAINLINK_ETH_USD); // USD :: WETH
-        
+
         deployFraxlendPublic(1e10, address(variableRateContract), abi.encode());
 
         uint256 _uniPrice = _token0 == address(asset)

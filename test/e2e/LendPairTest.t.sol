@@ -57,7 +57,7 @@ contract LendPairTest is BasePairTest {
 
         address[] memory approvedBorrowers = new address[](1);
         approvedBorrowers[0] = users[3];
-        
+
         address[] memory approvedLenders = new address[](1);
         approvedLenders[0] = users[1];
 
