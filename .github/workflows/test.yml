@@ -43,5 +43,5 @@ jobs:
 
       - name: Run Forge tests
         run: |
-          forge test -vvv
+          forge test -vvv --rpc-url ${{ secrets.LLAMA_RPC_URL }}
         id: test
