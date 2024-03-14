@@ -70,6 +70,26 @@ forge script CONTRACT_TO_DEPLOY \
   --broadcast
 ```
 
+#### Sepolia
+
+| Contract Name          | Address                                                                                                                    |
+|------------------------|----------------------------------------------------------------------------------------------------------------------------|
+| FraxlendPairHelper    | [0x000000e431149B554d6f3f58aa2e70a55FfFb7CA](https://sepolia.etherscan.io/address/0x000000e431149B554d6f3f58aa2e70a55FfFb7CA) |
+| FraxlendPairDeployer  | [0x0000003a42E37Fd604C985e0c71181048CDfF1e2](https://sepolia.etherscan.io/address/0x0000003a42E37Fd604C985e0c71181048CDfF1e2) |
+| VariableInterestRate  | [0x0000002d9b19BCc7BE22550b716921436C445144](https://sepolia.etherscan.io/address/0x0000002d9b19BCc7BE22550b716921436C445144) |
+| LinearInterestRate    | [0x000000F002E6DC71B373B30a274f16a126609960](https://sepolia.etherscan.io/address/0x000000F002E6DC71B373B30a274f16a126609960) |
+
+
+#### Holesky
+
+| Contract Name          | Address                                                                                                                    |
+|------------------------|----------------------------------------------------------------------------------------------------------------------------|
+| FraxlendPairHelper    | [0x000000e431149B554d6f3f58aa2e70a55FfFb7CA](https://holesky.etherscan.io/address/0x000000e431149B554d6f3f58aa2e70a55FfFb7CA) |
+| FraxlendPairDeployer  | [0x0000003a42E37Fd604C985e0c71181048CDfF1e2](https://holesky.etherscan.io/address/0x0000003a42E37Fd604C985e0c71181048CDfF1e2) |
+| VariableInterestRate  | [0x0000002d9b19BCc7BE22550b716921436C445144](https://holesky.etherscan.io/address/0x0000002d9b19BCc7BE22550b716921436C445144) |
+| LinearInterestRate    | [0x000000F002E6DC71B373B30a274f16a126609960](https://holesky.etherscan.io/address/0x000000F002E6DC71B373B30a274f16a126609960) |
+
+
 ## 4. License
 Permission to use, copy, modify, and/or distribute this software for any purpose with or without fee is hereby granted, 
 provided that the above copyright notice and this permission notice appear in all copies.
