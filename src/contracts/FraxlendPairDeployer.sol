@@ -25,12 +25,12 @@ pragma solidity ^0.8.16;
 
 // ====================================================================
 
-import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/utils/Strings.sol";
-import "@rari-capital/solmate/src/utils/SSTORE2.sol";
-import "solidity-bytes-utils/contracts/BytesLib.sol";
+import { Initializable } from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
+import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
+import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
+import { SSTORE2 } from "@rari-capital/solmate/src/utils/SSTORE2.sol";
+import { BytesLib } from "solidity-bytes-utils/contracts/BytesLib.sol";
 import "./interfaces/IRateCalculator.sol";
 import "./interfaces/IFraxlendPair.sol";
 import "./libraries/SafeERC20.sol";
