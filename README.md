@@ -70,6 +70,31 @@ forge script CONTRACT_TO_DEPLOY \
   --broadcast
 ```
 
+### e. Deploying to a local network
+
+1) Copy `.env.example` to `.env` to configure the parameters.
+
+2) Add `http://127.0.0.1:8545` as an RPC to metamask.
+
+3) Add `0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80` as an acocunt to metamask.
+
+```shell
+cp .env.example .env
+```
+
+```shell
+source .env && 
+anvil --fork-url $RPC_URL
+```
+
+```shell
+source .env &&
+forge script DeployFraxlend \
+ --rpc-url http://127.0.0.1:8545 \
+ --private-key $PRIVATE_KEY \
+ --broadcast
+```
+
 #### Sepolia
 
 | Contract Name          | Address                                                                                                                    |
