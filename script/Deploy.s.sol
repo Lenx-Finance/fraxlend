@@ -78,8 +78,8 @@ contract DeployFraxlend is Script, StdCheats {
             pair = FraxlendPair(
                 deployer.deploy(
                     abi.encode(
-                        address(dai),
                         address(xbtc),
+                        address(dai),
                         new MockOracle(18, 70_000e18), // 70k
                         new MockOracle(18, 1e18),
                         uint256(1e18),
