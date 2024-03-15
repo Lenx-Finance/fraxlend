@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: The Unlicense
 pragma solidity ^0.8.0;
 
-import { Script } from "forge-std/Script.sol";
+import { Script, console2 } from "forge-std/Script.sol";
 import { MockERC20 } from "forge-std/mocks/MockERC20.sol";
 import { StdCheats } from "forge-std/StdCheats.sol";
 
@@ -70,6 +70,9 @@ contract DeployFraxlend is Script, StdCheats {
 
             MockERC20 dai = new MockERC20();
             dai.initialize("DAI", "DAI", 18);
+
+            console2.log("xbtc", address(xbtc));
+            console2.log("dai", address(dai));
 
             // deal testnet balances
             deal(address(xbtc), msg.sender, 100e8);
