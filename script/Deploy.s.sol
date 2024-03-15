@@ -61,3 +61,19 @@ contract DeployFraxlend is Script {
         vm.stopBroadcast();
     }
 }
+
+contract DeployFraxlendPair is Script {
+    function run() public virtual returns (FraxlendPair pair) {
+        FraxlendPairDeployer(vm.envAddress("FRAXLEND_PAIR_DEPLOYER")).deploy(
+            abi.encode(
+                vm.envAddress("FRAXLEND_ASSET"),
+                vm.envAddress("FRAXLEND_COLLATERAL"),
+                vm.envAddress("ORACLE_MULTIPLY"),
+                vm.envAddress("ORACLE_DIVIDE"),
+                vm.envUint("ORACLE_NORMALIZATION"),
+                vm.envAddress("RATE_CONTRACT"),
+                vm.envBytes("RATE_INIT_DATA")
+            )
+        );
+    }
+}
