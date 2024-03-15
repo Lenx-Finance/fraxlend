@@ -38,7 +38,7 @@ abstract contract FraxlendPairConstants {
     uint256 internal constant EXCHANGE_PRECISION = 1e18;
 
     // Default Interest Rate (if borrows = 0)
-    uint64 internal constant DEFAULT_INT = 158049988; // 0.5% annual rate 1e18 precision
+    uint64 internal constant DEFAULT_INT = 158_049_988; // 0.5% annual rate 1e18 precision
 
     // Protocol Fee
     uint16 internal constant DEFAULT_PROTOCOL_FEE = 0; // 1e5 precision
