@@ -31,7 +31,8 @@ import { ReentrancyGuard } from "@openzeppelin/contracts/security/ReentrancyGuar
 import { Pausable } from "@openzeppelin/contracts/security/Pausable.sol";
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
-import  { AggregatorV3Interface } from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
+import { AggregatorV3Interface } from
+    "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 import "./FraxlendPairConstants.sol";
 import "./libraries/VaultAccount.sol";
 import "./libraries/SafeERC20.sol";

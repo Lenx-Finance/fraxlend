@@ -16,7 +16,8 @@ pragma solidity ^0.8.16;
 // Primary Author
 // Drake Evans: https://github.com/DrakeEvans
 
-import { AggregatorV3Interface } from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
+import { AggregatorV3Interface } from
+    "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import "./libraries/VaultAccount.sol";
 
